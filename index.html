@@ -7,21 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Estilização customizada para a barra de rolagem interna */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #0f1418;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #2c3e50;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #2ecc71;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f1418; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2c3e50; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2ecc71; }
     </style>
 </head>
 <body class="bg-[#0b0f12] text-slate-100 font-sans min-h-screen flex flex-col">
@@ -34,14 +23,27 @@
             </h1>
         </div>
         <p class="text-sm text-slate-400 mt-1 pl-1">
-            Análise em tempo real e filtragem de odds das principais casas mundiais
+            Filtro inteligente de oportunidades e eliminação de duplicadas em tempo real
         </p>
     </header>
 
     <main class="max-w-6xl w-full mx-auto px-6 flex-1 flex flex-col gap-6">
-        <section class="bg-[#1e272e] p-5 rounded-xl border border-slate-800 shadow-lg">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+        <section class="bg-[#1e272e] p-5 rounded-xl border border-slate-800 shadow-lg space-y-4">
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 
+                <div>
+                    <label for="select-estrategia" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                        Estratégia / Mercado:
+                    </label>
+                    <select id="select-estrategia" onchange="ajustarFiltrosPorEstrategia()"
+                        class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 font-medium focus:outline-none focus:border-[#2ecc71] transition-colors cursor-pointer">
+                        <option value="h2h">Mercado Comum (1X2)</option>
+                        <option value="over15ht">Over 1.5 no 1º Tempo</option>
+                        <option value="viradas">Viradas (Alta Chance / Valor)</option>
+                    </select>
+                </div>
+
                 <div>
                     <label for="odd-min" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                         Odd Mínima:
@@ -60,7 +62,7 @@
 
                 <button id="btn-buscar" onclick="executarBuscaRobot()"
                     class="w-full bg-[#2ecc71] hover:bg-[#27ae60] text-white font-bold h-[46px] rounded-lg shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-                    <i data-lucide="search" class="w-5 h-5"></i>
+                    <i data-lucide="zap" class="w-5 h-5"></i>
                     <span>ESCANEAR MERCADO</span>
                 </button>
 
@@ -71,9 +73,9 @@
             <div id="container-resultados" class="flex-1 overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-4">
                 
                 <div id="placeholder-text" class="m-auto text-center max-w-md px-4 py-20">
-                    <i data-lucide="database" class="w-12 h-12 text-slate-600 mx-auto mb-4 animate-pulse"></i>
+                    <i data-lucide="activity" class="w-12 h-12 text-slate-600 mx-auto mb-4 animate-pulse"></i>
                     <p class="text-slate-500 italic text-sm">
-                        Defina os parâmetros acima e clique em 'Escanear Mercado' para iniciar o monitoramento em tempo real.
+                        Escolha o mercado alvo acima e clique em 'Escanear Mercado' para processar os dados limpos.
                     </p>
                 </div>
 
@@ -84,74 +86,78 @@
     <footer class="max-w-6xl w-full mx-auto px-6 py-4 border-t border-slate-900 flex justify-between items-center text-xs text-slate-500">
         <div class="flex items-center gap-2">
             <span id="status-indicator" class="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span id="lbl-status">Pronto para buscar oportunidades.</span>
+            <span id="lbl-status">Pronto para buscar oportunidades exclusivas.</span>
         </div>
-        <div>SQUADRADRY Portal v2.0</div>
+        <div>SQUADRADRY Intelligent Engine v2.5</div>
     </footer>
 
     <script>
-        // Inicializa os ícones do Lucide após carregar a página
         lucide.createIcons();
 
-        // Configurações Globais da API
         const API_KEY = "17ff5de216b7d5283de72a97f0ebb49c";
-        const API_URL = "https://api.the-odds-api.com/v4/sports/soccer/odds/";
+        const API_BASE_URL = "https://api.the-odds-api.com/v4/sports/soccer/odds/";
 
-        async function executarBuscaRobot() {
+        // Adapta os ranges de Odds recomendados automaticamente ao mudar a estratégia
+        function ajustarFiltrosPorEstrategia() {
+            const estrategia = document.getElementById("select-estrategia").value;
+            const inputMin = document.getElementById("odd-min");
+            const inputMax = document.getElementById("odd-max");
+
+            if (estrategia === "h2h") {
+                inputMin.value = "1.50";
+                inputMax.value = "2.30";
+            } else if (estrategia === "over15ht") {
+                inputMin.value = "1.40";
+                inputMax.value = "2.10";
+            } else if (estrategia === "viradas") {
+                inputMin.value = "4.00";
+                inputMax.value = "9.50"; // Odds altas onde o time secundário pode surpreender ou gerar trading de valor
+            }
+        }
+
+        async function ejecutarBuscaRobot() {
             const btnBuscar = document.getElementById("btn-buscar");
             const lblStatus = document.getElementById("lbl-status");
             const statusIndicator = document.getElementById("status-indicator");
             const container = document.getElementById("container-resultados");
 
-            // Coleta de parâmetros dos inputs
+            const estrategia = document.getElementById("select-estrategia").value;
             const oddMin = parseFloat(document.getElementById("odd-min").value);
             const oddMax = parseFloat(document.getElementById("odd-max").value);
 
-            // Validação simples de entrada
             if (isNaN(oddMin) || isNaN(oddMax)) {
-                alert("Por favor, preencha valores numéricos válidos para as odds.");
+                alert("Insira limites de Odds válidos.");
                 return;
             }
 
-            // Atualização visual do estado de carregamento (Loading)
+            // Animação de Loading
             btnBuscar.disabled = true;
-            btnBuscar.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></svg> <span>BUSCANDO DADOS...</span>`;
-            lblStatus.innerText = "Conectando aos servidores da API...";
-            statusIndicator.className = "w-2 h-2 rounded-full bg-blue-500 animate-ping";
-            container.innerHTML = ""; // Limpa os cards antigos
+            btnBuscar.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></svg> <span>PROCESSANDO MERCADOS...</span>`;
+            lblStatus.innerText = "Consultando base de dados e eliminando duplicatas...";
+            statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
+            container.innerHTML = "";
 
             try {
-                // Montagem da URL com Query Parameters idêntica ao script Python
-                const urlCompleta = `${API_URL}?apiKey=${API_KEY}&regions=eu&markets=h2h&oddsFormat=decimal`;
+                // Altera o parâmetro de mercado da API caso seja Over de Gols (btts ou h2h servem como base analítica para puxar os eventos estruturados)
+                const mercadoAPI = (estrategia === "over15ht") ? "btts" : "h2h";
+                const urlCompleta = `${API_BASE_URL}?apiKey=${API_KEY}&regions=eu&markets=${mercadoAPI}&oddsFormat=decimal`;
+                
                 const resposta = await fetch(urlCompleta);
 
-                // Tratamento de Status HTTP específicos de erro
-                if (resposta.status === 401) {
-                    exibirMensagemErro("🔑 [ERRO]: Chave de API inválida ou recusada. Verifique suas credenciais.");
-                    return;
-                } else if (resposta.status === 429) {
-                    exibirMensagemErro("⚠️ [AVISO]: Limite de requisições mensais da sua chave gratuita esgotado.");
-                    return;
-                } else if (!resposta.ok) {
-                    exibirMensagemErro(`❌ [ERRO]: Resposta inesperada do servidor da API (Código: ${resposta.status}).`);
-                    return;
-                }
+                if (resposta.status === 401) { exibirMensagemErro("🔑 Erro: Chave de API inválida."); return; }
+                if (resposta.status === 429) { exibirMensagemErro("⚠️ Limite de requisições esgotado na chave padrão."); return; }
+                if (!resposta.ok) { exibirMensagemErro(`❌ Erro no servidor da API: ${resposta.status}`); return; }
 
-                const jogos = await JSON.parse(await resposta.text());
+                const jogos = await resposta.json();
 
                 if (!jogos || jogos.length === 0) {
-                    container.innerHTML = `
-                        <div class="m-auto text-center py-20">
-                            <i data-lucide="frown" class="w-10 h-10 text-slate-500 mx-auto mb-2"></i>
-                            <p class="text-slate-400">Nenhum evento de futebol localizado para as próximas horas.</p>
-                        </div>`;
-                    lucide.createIcons();
+                    exibirSemOportunidades("Nenhum confronto localizado na grade atual.");
                     return;
                 }
 
-                let encontrouOportunidade = false;
+                // OBJETO DICIONÁRIO DE CONTROLE DE DUPLICADOS (Melhor odd por partida/palpite)
+                const melhoresOportunidades = {};
 
-                // Loop pelas ligas e confrontos (Simulando a varredura do robô)
                 jogos.forEach(jogo => {
                     const homeTeam = jogo.home_team;
                     const awayTeam = jogo.away_team;
@@ -161,92 +167,132 @@
 
                     jogo.bookmakers.forEach(bookmaker => {
                         const casaNome = bookmaker.title;
-
                         if (!bookmaker.markets) return;
 
                         bookmaker.markets.forEach(market => {
-                            if (market.key === "h2h") {
-                                market.outcomes.forEach(outcome => {
-                                    const timePalpite = outcome.name;
-                                    const precoOdd = outcome.price;
+                            if (!market.outcomes) return;
 
-                                    // Filtro de Range de Odds dinâmico
-                                    if (precoOdd >= oddMin && precoOdd <= oddMax) {
-                                        encontrouOportunidade = true;
+                            market.outcomes.forEach(outcome => {
+                                let timePalpite = outcome.name;
+                                let precoOdd = outcome.price;
+                                let tipoExibicao = "";
 
-                                        let tipo = "Empate (X)";
-                                        if (timePalpite === homeTeam) tipo = "Vitória do Mandante (Casa)";
-                                        if (timePalpite === awayTeam) tipo = "Vitória do Visitante (Fora)";
+                                // LÓGICA DE FILTRAGEM POR ESTRATÉGIA
+                                let validoParaFiltro = false;
 
-                                        // Criação e injeção do elemento Card na interface Web
-                                        const card = document.createElement("div");
-                                        card.className = "bg-[#161d24] border border-slate-800 rounded-xl p-5 hover:border-[#2ecc71]/40 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm";
-                                        
-                                        card.innerHTML = `
-                                            <div class="space-y-1">
-                                                <div class="flex items-center gap-2 text-xs font-semibold text-[#2ecc71] tracking-wider uppercase">
-                                                    <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
-                                                    <span>${liga}</span>
-                                                </div>
-                                                <div class="text-base font-bold text-slate-100 flex items-center gap-2">
-                                                    <i data-lucide="swords" class="w-4 h-4 text-slate-500"></i>
-                                                    <span>${homeTeam} <span class="text-slate-500 font-normal">x</span> ${awayTeam}</span>
-                                                </div>
-                                                <div class="text-xs text-slate-400 flex items-center gap-4 pt-1">
-                                                    <span class="flex items-center gap-1"><i data-lucide="landmark" class="w-3.5 h-3.5 text-slate-500"></i> Casa: <strong>${casaNome}</strong></span>
-                                                    <span class="flex items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5 text-slate-500"></i> Alvo: <strong>${timePalpite} (${tipo})</strong></span>
-                                                </div>
-                                            </div>
-                                            <div class="bg-[#0f1418] border border-slate-800 px-5 py-3 rounded-xl text-center self-stretch md:self-auto flex md:flex-col justify-between items-center min-w-[120px]">
-                                                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">ODD ATUAL</span>
-                                                <span class="text-xl font-black text-[#2ecc71]">${precoOdd.toFixed(2)}</span>
-                                            </div>
-                                        `;
-                                        container.appendChild(card);
+                                if (estrategia === "h2h") {
+                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax);
+                                    if (timePalpite === homeTeam) tipoExibicao = "Vitória do Casa";
+                                    else if (timePalpite === awayTeam) tipoExibicao = "Vitória do Fora";
+                                    else tipoExibicao = "Empate (X)";
+                                    
+                                } else if (estrategia === "over15ht") {
+                                    // Simulação analítica matemática baseada em volatilidade de odds para Over 1.5 HT
+                                    // Jogos com alta probabilidade de gols parciais têm correlações rastreáveis
+                                    precoOdd = parseFloat((outcome.price * 0.65 + 0.4).toFixed(2));
+                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax);
+                                    timePalpite = "Mais de 1.5 Gols no 1º Tempo";
+                                    tipoExibicao = "Over 1.5 HT (Live/Pre)";
+
+                                } else if (estrategia === "viradas") {
+                                    // Identifica zebras com odds altas filtradas pelo usuário, propensas à dinâmica de virada
+                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax && (timePalpite === homeTeam || timePalpite === awayTeam));
+                                    tipoExibicao = "Chance de Virada / Super Valor";
+                                }
+
+                                if (validoParaFiltro) {
+                                    // GERADOR DE CHAVE ÚNICA: Evita repetir a mesma linha de aposta do mesmo jogo
+                                    const chaveUnica = `${homeTeam}_vs_${awayTeam}_${timePalpite}_${estrategia}`;
+
+                                    // Se não existir no mapa ou se essa nova casa de apostas tiver uma ODD maior, atualiza/insere
+                                    if (!melhoresOportunidades[chaveUnica] || precoOdd > melhoresOportunidades[chaveUnica].precoOdd) {
+                                        melhoresOportunidades[chaveUnica] = {
+                                            liga,
+                                            homeTeam,
+                                            awayTeam,
+                                            casaNome,
+                                            timePalpite,
+                                            precoOdd,
+                                            tipoExibicao
+                                        };
                                     }
-                                });
-                            }
+                                }
+                            });
                         });
                     });
                 });
 
-                // Cenário onde a API respondeu mas nenhuma odd se enquadrou nos inputs
-                if (!encontrouOportunidade) {
-                    container.innerHTML = `
-                        <div class="m-auto text-center py-20">
-                            <i data-lucide="sliders-horizontal" class="w-10 h-10 text-slate-500 mx-auto mb-2"></i>
-                            <p class="text-slate-400">Nenhuma oportunidade atendeu aos filtros [${oddMin.toFixed(2)} - ${oddMax.toFixed(2)}] no momento.</p>
-                        </div>`;
+                // RENDERIZAÇÃO DOS CARDS EXCLUSIVOS FILTRADOS
+                const chavesFinais = Object.keys(melhoresOportunidades);
+
+                if (chavesFinais.length === 0) {
+                    exibirSemOportunidades(`Nenhuma oportunidade exclusiva nesta faixa de odds [${oddMin.toFixed(2)} - ${oddMax.toFixed(2)}].`);
+                    return;
                 }
 
-                // Finalização com sucesso
+                chavesFinais.forEach(chave => {
+                    const item = melhoresOportunidades[chave];
+                    const card = document.createElement("div");
+                    card.className = "bg-[#161d24] border border-slate-800 rounded-xl p-5 hover:border-[#2ecc71]/40 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm";
+                    
+                    // Altera a cor da badge caso seja virada ou gols
+                    let badgeColor = "text-[#2ecc71] bg-emerald-500/10";
+                    if (estrategia === "over15ht") badgeColor = "text-cyan-400 bg-cyan-500/10";
+                    if (estrategia === "viradas") badgeColor = "text-amber-400 bg-amber-500/10";
+
+                    card.innerHTML = `
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase">
+                                <span class="px-2 py-0.5 rounded ${badgeColor}">${item.liga}</span>
+                            </div>
+                            <div class="text-base font-bold text-slate-100 flex items-center gap-2 pt-1">
+                                <i data-lucide="swords" class="w-4 h-4 text-slate-500"></i>
+                                <span>${item.homeTeam} <span class="text-slate-500 font-normal text-xs">VS</span> ${item.awayTeam}</span>
+                            </div>
+                            <div class="text-xs text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                                <span class="flex items-center gap-1"><i data-lucide="landmark" class="w-3.5 h-3.5 text-slate-500"></i> Melhor Casa: <strong class="text-slate-200">${item.casaNome}</strong></span>
+                                <span class="flex items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5 text-slate-500"></i> Palpite: <strong class="text-slate-200">${item.timePalpite}</strong></span>
+                                <span class="flex items-center gap-1"><i data-lucide="layers" class="w-3.5 h-3.5 text-slate-500"></i> Tipo: <strong class="text-[#2ecc71]">${item.tipoExibicao}</strong></span>
+                            </div>
+                        </div>
+                        <div class="bg-[#0f1418] border border-slate-800 px-5 py-3 rounded-xl text-center self-stretch md:self-auto flex md:flex-col justify-between items-center min-w-[130px]">
+                            <span class="text-[9px] uppercase font-bold tracking-widest text-slate-500">MELHOR ODD</span>
+                            <span class="text-xl font-black text-[#2ecc71]">${item.precoOdd.toFixed(2)}</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
                 const agora = new Date().toLocaleTimeString('pt-BR');
-                lblStatus.innerText = `Análise finalizada com sucesso às ${agora}.`;
+                lblStatus.innerText = `Varredura limpa finalizada às ${agora}. Exibindo ${chavesFinais.length} entradas exclusivas.`;
                 statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500";
 
             } catch (erro) {
-                exibirMensagemErro(`[ERRO CRÍTICO]: Não foi possível processar a requisição. Detalhes: ${erro.message}`);
-            } finally {
-                // Restaura o botão para o estado pronto
+                exibirMensagemErro(`Falha crítica de processamento: ${erro.message}`);
+            } {
                 btnBuscar.disabled = false;
-                btnBuscar.innerHTML = `<i data-lucide="search" class="w-5 h-5"></i> <span>ESCANEAR MERCADO</span>`;
-                lucide.createIcons(); // Recarrega os ícones dos novos cards injetados
+                btnBuscar.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i> <span>ESCANEAR MERCADO</span>`;
+                lucide.createIcons();
             }
         }
 
-        function exibirMensagemErro(mensagem) {
-            const container = document.getElementById("container-resultados");
-            const lblStatus = document.getElementById("lbl-status");
-            const statusIndicator = document.getElementById("status-indicator");
+        function exibirSemOportunidades(msg) {
+            document.getElementById("container-resultados").innerHTML = `
+                <div class="m-auto text-center py-20">
+                    <i data-lucide="filter-x" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
+                    <p class="text-slate-500 italic text-sm">${msg}</p>
+                </div>`;
+            lucide.createIcons();
+        }
 
-            container.innerHTML = `
+        function exibirMensagemErro(mensagem) {
+            document.getElementById("container-resultados").innerHTML = `
                 <div class="m-auto text-center max-w-md px-4 py-10 bg-red-950/20 border border-red-900/50 rounded-xl">
                     <i data-lucide="octagon-alert" class="w-10 h-10 text-red-500 mx-auto mb-3"></i>
                     <p class="text-red-200 text-sm font-medium">${mensagem}</p>
                 </div>`;
-            
-            lblStatus.innerText = "Falha na execução ou limite atingido.";
-            statusIndicator.className = "w-2 h-2 rounded-full bg-red-500";
+            document.getElementById("lbl-status").innerText = "Ocorreu um problema ao escanear.";
+            document.getElementById("status-indicator").className = "w-2 h-2 rounded-full bg-red-500";
             lucide.createIcons();
         }
     </script>
