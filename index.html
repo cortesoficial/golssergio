@@ -23,7 +23,7 @@
             </h1>
         </div>
         <p class="text-sm text-slate-400 mt-1 pl-1">
-            Filtro inteligente de oportunidades e eliminação de duplicadas em tempo real
+            Análise probabilística e cálculo matemático de assertividade em tempo real
         </p>
     </header>
 
@@ -34,7 +34,7 @@
                 
                 <div>
                     <label for="select-estrategia" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                        Estratégia / Mercado:
+                        Estrategia / Mercado:
                     </label>
                     <select id="select-estrategia" onchange="ajustarFiltrosPorEstrategia()"
                         class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 font-medium focus:outline-none focus:border-[#2ecc71] transition-colors cursor-pointer">
@@ -75,7 +75,7 @@
                 <div id="placeholder-text" class="m-auto text-center max-w-md px-4 py-20">
                     <i data-lucide="activity" class="w-12 h-12 text-slate-600 mx-auto mb-4 animate-pulse"></i>
                     <p class="text-slate-500 italic text-sm">
-                        Escolha o mercado alvo acima e clique em 'Escanear Mercado' para processar os dados limpos.
+                        Escolha o mercado alvo acima e clique em 'Escanear Mercado' para processar a probabilidade das entradas.
                     </p>
                 </div>
 
@@ -86,9 +86,9 @@
     <footer class="max-w-6xl w-full mx-auto px-6 py-4 border-t border-slate-900 flex justify-between items-center text-xs text-slate-500">
         <div class="flex items-center gap-2">
             <span id="status-indicator" class="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span id="lbl-status">Pronto para buscar oportunidades exclusivas.</span>
+            <span id="lbl-status">Pronto para calcular probabilidades de Green.</span>
         </div>
-        <div>ALEX Intelligent Engine v2.5</div>
+        <div>ALEX Intelligent Engine v3.0</div>
     </footer>
 
     <script>
@@ -96,8 +96,6 @@
 
         const API_KEY = "17ff5de216b7d5283de72a97f0ebb49c";
         const API_BASE_URL = "https://api.the-odds-api.com/v4/sports/soccer/odds/";
-        
-        // Mudança para um engine de proxy mais robusto para evitar o erro "Failed to fetch" no GitHub Pages
         const PROXY_URL = "https://corsproxy.io/?";
 
         function ajustarFiltrosPorEstrategia() {
@@ -133,22 +131,20 @@
             }
 
             btnBuscar.disabled = true;
-            btnBuscar.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></svg> <span>PROCESSANDO MERCADOS...</span>`;
-            lblStatus.innerText = "Conectando em canais seguros e limpando dados...";
+            btnBuscar.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></svg> <span>CALCULANDO PROBABILIDADES...</span>`;
+            lblStatus.innerText = "Baixando cotações globais e aplicando fórmulas analíticas...";
             statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
             container.innerHTML = "";
 
             try {
                 const mercadoAPI = (estrategia === "over15ht") ? "btts" : "h2h";
                 const urlOriginal = `${API_BASE_URL}?apiKey=${API_KEY}&regions=eu&markets=${mercadoAPI}&oddsFormat=decimal`;
-                
-                // Usando a nova estrutura de bypass do corsproxy.io
                 const urlFinal = `${PROXY_URL}${encodeURIComponent(urlOriginal)}`;
                 
                 const resposta = await fetch(urlFinal);
 
                 if (resposta.status === 401) { exibirMensagemErro("🔑 Erro: Chave de API inválida."); return; }
-                if (resposta.status === 429) { exibirMensagemErro("⚠️ Limite de requisições esgotado na chave padrão."); return; }
+                if (resposta.status === 429) { exibirMensagemErro("⚠️ Limite de requisições esgotado."); return; }
                 if (!resposta.ok) { exibirMensagemErro(`❌ Erro no servidor da API: ${resposta.status}`); return; }
 
                 const jogos = await resposta.json();
@@ -161,9 +157,17 @@
                 const melhoresOportunidades = {};
 
                 jogos.forEach(jogo => {
-                    const homeTeam = jogo.home_team;
-                    const awayTeam = jogo.away_team;
+                    const homeTeam = deleteCountrySuffix(jogo.home_team);
+                    const awayTeam = deleteCountrySuffix(jogo.away_team);
                     const liga = jogo.sport_title;
+                    
+                    let dataHoraExibicao = "Horário indisponível";
+                    if (jogo.commence_time) {
+                        const dataUtc = new Date(jogo.commence_time);
+                        dataHoraExibicao = dataUtc.toLocaleString('pt-BR', {
+                            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                        });
+                    }
 
                     if (!jogo.bookmakers) return;
 
@@ -183,8 +187,8 @@
 
                                 if (estrategia === "h2h") {
                                     validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax);
-                                    if (timePalpite === homeTeam) tipoExibicao = "Vitória do Casa";
-                                    else if (timePalpite === awayTeam) tipoExibicao = "Vitória do Fora";
+                                    if (timePalpite === jogo.home_team) tipoExibicao = "Vitória do Casa";
+                                    else if (timePalpite === jogo.away_team) tipoExibicao = "Vitória do Fora";
                                     else tipoExibicao = "Empate (X)";
                                     
                                 } else if (estrategia === "over15ht") {
@@ -194,7 +198,7 @@
                                     tipoExibicao = "Over 1.5 HT";
 
                                 } else if (estrategia === "viradas") {
-                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax && (timePalpite === homeTeam || timePalpite === awayTeam));
+                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax && (timePalpite === jogo.home_team || timePalpite === job.away_team));
                                     tipoExibicao = "Chance de Virada / Valor";
                                 }
 
@@ -203,7 +207,7 @@
 
                                     if (!melhoresOportunidades[chaveUnica] || precoOdd > melhoresOportunidades[chaveUnica].precoOdd) {
                                         melhoresOportunidades[chaveUnica] = {
-                                            liga, homeTeam, awayTeam, casaNome, timePalpite, precoOdd, tipoExibicao
+                                            liga, homeTeam, awayTeam, casaNome, timePalpite, precoOdd, tipoExibicao, dataHoraExibicao
                                         };
                                     }
                                 }
@@ -221,29 +225,54 @@
 
                 chavesFinais.forEach(chave => {
                     const item = melhoresOportunidades[chave];
+                    
+                    // CÁLCULO PRECISO DA PROBABILIDADE IMPLÍCITA
+                    const probabilidade = Math.min(Math.round(100 / item.precoOdd), 99);
+                    
+                    // Definição de Cores da Barra com base no risco
+                    let barColor = "bg-[#2ecc71]"; // Verde para alta probabilidade
+                    if (probabilidade < 40) barColor = "bg-amber-500"; // Amarelo para risco médio/alto
+                    if (probabilidade < 20) barColor = "bg-red-500"; // Vermelho para zebras/alto risco
+
                     const card = document.createElement("div");
-                    card.className = "bg-[#161d24] border border-slate-800 rounded-xl p-5 hover:border-[#2ecc71]/40 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm";
+                    card.className = "bg-[#161d24] border border-slate-800 rounded-xl p-5 hover:border-[#2ecc71]/40 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm";
                     
                     let badgeColor = "text-[#2ecc71] bg-emerald-500/10";
                     if (estrategia === "over15ht") badgeColor = "text-cyan-400 bg-cyan-500/10";
                     if (estrategia === "viradas") badgeColor = "text-amber-400 bg-amber-500/10";
 
                     card.innerHTML = `
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase">
+                        <div class="space-y-2 flex-1 w-full">
+                            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wider uppercase">
                                 <span class="px-2 py-0.5 rounded ${badgeColor}">${item.liga}</span>
+                                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3 text-[#2ecc71]"></i>
+                                    <span>${item.dataHoraExibicao}</span>
+                                </span>
                             </div>
-                            <div class="text-base font-bold text-slate-100 flex items-center gap-2 pt-1">
+                            
+                            <div class="text-base font-bold text-slate-100 flex items-center gap-2 pt-0.5">
                                 <i data-lucide="swords" class="w-4 h-4 text-slate-500"></i>
                                 <span>${item.homeTeam} <span class="text-slate-500 font-normal text-xs">VS</span> ${item.awayTeam}</span>
                             </div>
-                            <div class="text-xs text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
-                                <span class="flex items-center gap-1"><i data-lucide="landmark" class="w-3.5 h-3.5 text-slate-500"></i> Melhor Casa: <strong class="text-slate-200">${item.casaNome}</strong></span>
-                                <span class="flex items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5 text-slate-500"></i> Palpite: <strong class="text-slate-200">${item.timePalpite}</strong></span>
-                                <span class="flex items-center gap-1"><i data-lucide="layers" class="w-3.5 h-3.5 text-slate-500"></i> Tipo: <strong class="text-[#2ecc71]">${item.tipoExibicao}</strong></span>
+                            
+                            <div class="text-xs text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1">
+                                <span class="flex items-center gap-1"><i data-lucide="landmark" class="w-3.5 h-3.5 text-slate-500"></i> Casa: <strong class="text-slate-200">${item.casaNome}</strong></span>
+                                <span class="flex items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5 text-slate-500"></i> Alvo: <strong class="text-slate-200">${item.timePalpite}</strong></span>
+                            </div>
+
+                            <div class="pt-2 max-w-md">
+                                <div class="flex justify-between text-[11px] font-bold text-slate-400 mb-1">
+                                    <span class="flex items-center gap-1"><i data-lucide="gauge" class="w-3 h-3 text-slate-500"></i> CHANCE DE BATER:</span>
+                                    <span class="text-slate-200">${probabilidade}%</span>
+                                </div>
+                                <div class="w-full bg-[#0f1418] rounded-full h-1.5 border border-slate-800">
+                                    <div class="${barColor} h-1.5 rounded-full transition-all duration-500" style="width: ${probabilidade}%"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-[#0f1418] border border-slate-800 px-5 py-3 rounded-xl text-center self-stretch md:self-auto flex md:flex-col justify-between items-center min-w-[130px]">
+
+                        <div class="bg-[#0f1418] border border-slate-800 px-5 py-4 rounded-xl text-center self-stretch md:self-auto flex md:flex-col justify-between items-center min-w-[130px] shadow-inner">
                             <span class="text-[9px] uppercase font-bold tracking-widest text-slate-500">MELHOR ODD</span>
                             <span class="text-xl font-black text-[#2ecc71]">${item.precoOdd.toFixed(2)}</span>
                         </div>
@@ -256,12 +285,16 @@
                 statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500";
 
             } catch (erro) {
-                exibirMensagemErro(`Falha de rede (CORS). Tente novamente em alguns segundos: ${erro.message}`);
+                exibirMensagemErro(`Falha de rede (CORS). Tente novamente: ${erro.message}`);
             } finally {
                 btnBuscar.disabled = false;
                 btnBuscar.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i> <span>ESCANEAR MERCADO</span>`;
                 lucide.createIcons();
             }
+        }
+
+        function deleteCountrySuffix(name) {
+            return name.replace(/\s*\(.*\)\s*/g, "").trim();
         }
 
         function exibirSemOportunidades(msg) {
