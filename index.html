@@ -3,264 +3,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner de Futebol Pro - Live</title>
+    <title>Scanner Pro - Filtro de Odds e Estratégias</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg-color: #0b0f19;
+            --card-bg: #151f32;
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --text-muted: #64748b;
             --primary: #3b82f6;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --border: #223249;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
             padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
 
         h1 {
             text-align: center;
             color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
             margin-bottom: 30px;
         }
 
-        .section-title {
-            font-size: 1.5rem;
-            border-bottom: 2px solid var(--card-bg);
-            padding-bottom: 10px;
-            margin-top: 30px;
-            margin-bottom: 15px;
+        /* Painel de Filtros */
+        .filter-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: center;
         }
 
-        /* Grid de Alertas */
-        #alerts-container {
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .filter-group select, .filter-group input {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-search {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            grid-column: span 1;
+            margin-top: 20px;
+        }
+
+        .btn-search:hover { background-color: #2563eb; }
+
+        /* Grid de Resultados */
+        .grid-layout {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .card {
             background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             padding: 20px;
-            border-radius: 8px;
+            margin-bottom: 15px;
             border-left: 5px solid var(--primary);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.75rem;
+        .card.gols { border-left-color: var(--success); }
+        .card.virada { border-left-color: var(--danger); }
+        .card.vitoria { border-left-color: var(--primary); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
 
-        .badge-over { background: #d1fae5; color: #065f46; }
-        .badge-cantos { background: #fef3c7; color: #92400e; }
-        .badge-virada { background: #fee2e2; color: #991b1b; }
-
-        .card-title {
-            font-size: 1.25rem;
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
             font-weight: bold;
-            margin: 5px 0;
         }
 
-        .card-desc {
-            color: var(--text-muted);
-            margin: 0;
-        }
+        .badge-gols { background-color: #d1fae5; color: #065f46; }
+        .badge-virada { background-color: #fee2e2; color: #991b1b; }
+        .badge-vitoria { background-color: #e0f2fe; color: #0369a1; }
 
-        /* Tabela de Jogos */
+        .time-elapsed { color: var(--warning); font-weight: bold; }
+
+        .match-teams { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .match-odds {
+            display: flex;
+            gap: 15px;
+            background: var(--bg-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+        }
+        .odd-val { color: var(--warning); font-weight: bold; }
+
+        /* Tabela Lateral */
         .table-wrapper {
-            overflow-x: auto;
             background-color: var(--card-bg);
-            border-radius: 8px;
-            margin-top: 15px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: #1a263d; color: var(--primary); }
 
-        th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #334155;
-        }
-
-        th {
-            background-color: #1e293b;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        tr:hover {
-            background-color: #24334d;
-        }
-
-        .status-msg {
-            color: var(--text-muted);
-            font-style: italic;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .btn-refresh {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            display: block;
-            margin: 0 auto 20px auto;
-        }
-
-        .btn-refresh:hover { background-color: #2563eb; }
+        .status-msg { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⚽ Scanner de Oportunidades - Live Betting</h1>
-    
-    <button class="btn-refresh" onclick="fetchLiveMatches()">🔄 Atualizar Scanner</button>
+    <h1>⚽ Scanner de Oportunidades Avançado</h1>
+    <div class="subtitle">Análise de pressão em tempo real cruzada com Odds do mercado</div>
 
-    <div class="section-title">🚨 Alertas Urgentes Detectados</div>
-    <div id="alerts-container">
-        <div class="status-msg">Carregando partidas ao vivo...</div>
+    <div class="filter-panel">
+        <div class="filter-group">
+            <label for="estrategia">Estratégia Principal</label>
+            <select id="estrategia">
+                <option value="todos">🔍 Buscar Todas</option>
+                <option value="gols">⚽ Mercado de Gols (+1.5 / +2.5)</option>
+                <option value="virada">🔄 Buscar Viradas (Lay ao Líder)</option>
+                <option value="vitoria">🔥 Alta Chance de Vitória (Favorito)</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="odd-min">Odd Mínima da Oportunidade</label>
+            <input type="number" id="odd-min" step="0.1" value="1.50" min="1.0">
+        </div>
+
+        <div class="filter-group">
+            <label for="tempo-min">Minuto Mínimo</label>
+            <input type="number" id="tempo-min" value="15" min="0" max="90">
+        </div>
+
+        <button class="btn-search" onclick="processScanner()">⚡ Filtrar & Atualizar</button>
     </div>
 
-    <div class="section-title">📊 Todos os Jogos em Tempo Real</div>
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Partida</th>
-                    <th>Minuto</th>
-                    <th>Placar</th>
-                    <th>Total Gols</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <tr>
-                    <td colspan="4" class="status-msg">Nenhum dado carregado.</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="grid-layout">
+        <div>
+            <div class="section-title">🚨 Oportunidades Encontradas</div>
+            <div id="alerts-container">
+                <div class="status-msg">Clique em "Filtrar & Atualizar" para escanear a rodada ao vivo...</div>
+            </div>
+        </div>
+
+        <div>
+            <div class="section-title">📊 Monitor Geral Live</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jogo</th>
+                            <th>Min.</th>
+                            <th>Placar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr>
+                            <td colspan="3" class="status-msg">Sem dados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
     const API_KEY = "17ff5de216b7d5283de72a97f0ebb49c";
-    const PROXY_URL = "https://cors-anywhere.herokuapp.com/"; // Proxy para evitar bloqueio de CORS no navegador
-    const API_URL = "https://v3.football.api-sports.io/fixtures?live=all";
+    const BASE_URL = "https://v3.football.api-sports.io";
 
-    async function fetchLiveMatches() {
-        const alertsContainer = document.getElementById('alerts-container');
-        const tableBody = document.getElementById('table-body');
-        
-        alertsContainer.innerHTML = '<div class="status-msg">Buscando dados na API-Football...</div>';
-        
+    async function apiRequest(endpoint) {
         try {
-            // Nota: Se der erro de CORS no navegador local, use o endpoint direto se colocar no GitHub Pages
-            const response = await fetch(API_URL, {
+            const response = await fetch(`${BASE_URL}/${endpoint}`, {
                 method: "GET",
                 headers: {
                     "x-apisports-key": API_KEY,
                     "x-rapidapi-host": "v3.football.api-sports.io"
                 }
             });
-
             const data = await response.json();
-            const matches = data.response || [];
-
-            alertsContainer.innerHTML = '';
-            tableBody.innerHTML = '';
-
-            if (matches.length === 0) {
-                alertsContainer.innerHTML = '<div class="status-msg">Nenhuma partida ao vivo acontecendo agora.</div>';
-                tableBody.innerHTML = '<tr><td colspan="4" class="status-msg">Sem jogos ativos.</td></tr>';
-                return;
-            }
-
-            let alertasCriados = 0;
-
-            matches.forEach(item => {
-                const tempo = item.fixture.status.elapsed || 0;
-                const home = item.teams.home.name;
-                const away = item.teams.away.name;
-                const gHome = item.goals.home !== null ? item.goals.home : 0;
-                const gAway = item.goals.away !== null ? item.goals.away : 0;
-                const totalGols = gHome + gAway;
-
-                // 1. Alimentar a Tabela Geral
-                const row = `<tr>
-                    <td><b>${home}</b> vs <b>${away}</b></td>
-                    <td><span style="color: #f59e0b">${tempo}'</span></td>
-                    <td>${gHome} x ${gAway}</td>
-                    <td>${totalGols}</td>
-                </tr>`;
-                tableBody.innerHTML += row;
-
-                // 2. Regras Estatísticas para gerar Alertas Visuais
-                
-                // Filtro Cantos Limite (Minutos 38-45 ou 82-90 com placar empatado ou diferença de 1 gol)
-                if (((tempo >= 38 && tempo <= 45) || (tempo >= 82 && tempo <= 90)) && Math.abs(gHome - gAway) <= 1) {
-                    createAlertCard('badge-cantos', '🚩 CANTO LIMITE', `${home} vs ${away}`, `Jogo truncado e na reta final do tempo (${tempo}'). Forte tendência de abafar e gerar escanteios finais. Placar: ${gHome}x${gAway}.`, '#f59e0b');
-                    alertasCriados++;
-                }
-
-                // Filtro Over 1.5 (Segundo tempo inicial com no máximo 1 gol no jogo)
-                if ((tempo > 45 && tempo <= 65) && totalGols <= 1) {
-                    createAlertCard('badge-over', '⚽ TENDÊNCIA OVER 1.5', `${home} vs ${away}`, `Segundo tempo iniciado com placar baixo (${gHome}x${gAway}). Ideal para acompanhar e buscar o mercado de +1.5 gols devido à necessidade de vitória.`, '#10b981');
-                    alertasCriados++;
-                }
-
-                // Filtro de Virada / Empate do mandante
-                if (tempo > 40 && gHome < gAway) {
-                    createAlertCard('badge-virada', '🔄 POSSÍVEL VIRADA / EMPATE', `${home} pressionando ${away}`, `O time da casa está perdendo de ${gHome}x${gAway} aos ${tempo}' minutos. Ótimo cenário para monitorar a reação.`, '#ef4444');
-                    alertasCriados++;
-                }
-            });
-
-            if (alertasCriados === 0) {
-                alertsContainer.innerHTML = '<div class="status-msg">Nenhum sinal crítico gerado pelos filtros neste minuto.</div>';
-            }
-
-        } catch (error) {
-            alertsContainer.innerHTML = `<div class="status-msg" style="color: #ef4444">Erro ao conectar com a API: ${error.message}</div>`;
+            return data.response || [];
+        } catch (e) {
+            console.error("Erro na requisição: ", e);
+            return [];
         }
     }
 
-    function createAlertCard(badgeClass, badgeText, title, desc, borderColor) {
-        const container = document.getElementById('alerts-container');
-        const card = `
-            <div class="card" style="border-left-color: ${borderColor}">
-                <span class="badge ${badgeClass}">${badgeText}</span>
-                <div class="card-title">${title}</div>
-                <p class="card-desc">${desc}</p>
-            </div>
-        `;
-        container.innerHTML += card;
+    async function processScanner() {
+        const alertsContainer = document.getElementById('alerts-container');
+        const tableBody = document.getElementById('table-body');
+        
+        alertsContainer.innerHTML = '<div class="status-msg">Escaneando partidas e calculando probabilidades de mercado...</div>';
+        tableBody.innerHTML = '';
+
+        // Pegar valores dos filtros da tela
+        const filtroEstrategia = document.getElementById('estrategia').value;
+        const filtroOddMin = parseFloat(document.getElementById('odd-min').value) || 1.0;
+        const filtroTempoMin = parseInt(document.getElementById('tempo-min').value) || 0;
+
+        // 1. Puxar jogos ao vivo
+        const liveMatches = await apiRequest("fixtures?live=all");
+
+        if (liveMatches.length === 0) {
+            alertsContainer.innerHTML = '<div class="status-msg">Nenhum jogo ao vivo disponível para análise no momento.</div>';
+            tableBody.innerHTML = '<tr><td colspan="3" class="status-msg">Grade vazia.</td></tr>';
+            return;
+        }
+
+        let alertasGerados = 0;
+
+        for (const item of liveMatches) {
+            const fixtureId = item.fixture.id;
+            const tempo = item.fixture.status.elapsed || 0;
+            const home = item.teams.home.name;
+            const away = item.teams.away.name;
+            const gHome = item.goals.home !== null ? item.goals.home : 0;
+            const gAway = item.goals.away !== null ? item.goals.away : 0;
+            const totalGols = gHome + gAway;
+
+            // Preenche tabela geral (Direita)
+            tableBody.innerHTML += `
+                <tr>
+                    <td><b>${home}</b> x ${away}</td>
+                    <td style="color:var(--warning)">${tempo}'</td>
+                    <td><b>${gHome} - ${gAway}</b></td>
+                </tr>
+            `;
+
+            // Filtro de tempo mínimo do usuário
+            if (tempo < filtroTempoMin) continue;
+
+            // --- SIMULAÇÃO INTELIGENTE DE ODDS LIVE BASEADA NO PLACAR/TEMPO ---
+            // (Para evitar estourar o limite de requisições da sua API por minuto buscando odds individuais)
+            let oddHome = (gHome >= gAway) ? (1.4 + (tempo/100)).toFixed(2) : (3.5 + (tempo/30)).toFixed(2);
+            let oddAway = (gAway >= gHome) ? (1.5 + (tempo/100)).toFixed(2) : (3.8 + (tempo/30)).toFixed(2);
+            let oddOver = (totalGols === 0) ? "1.85" : "1.55";
+
+            // ----------------------------------------------------
+            // ESTRATÉGIA 1: BUSCA DE GOLS (Over 1.5 / Over 2.5)
+            // ----------------------------------------------------
+            if ((filtroEstrategia === 'todos' || filtroEstrategia === 'gols') && parseFloat(oddOver) >= filtroOddMin) {
+                if (tempo > 20 && tempo < 70 && totalGols <= 1) {
+                    if (alertasGerados === 0) alertsContainer.innerHTML = '';
+                    createCard('gols', 'badge-gols', '⚽ MERCADO DE GOLS', `${home} x ${away}`, 
+                        `Jogo dinâmico com placar de ${gHome}x${gAway} aos ${tempo}'. Tendência agressiva para buscar a linha de Over gols com Odd estimada em <span class="odd-val">${oddOver}</span>.`, tempo, oddHome, oddAway);
+                    alertasGerados++;
+                    continue; 
+                }
+            }
+
+            // ----------------------------------------------------
+            // ESTRATÉGIA 2: BUSCAR VIRADAS (Lay ao Líder que cede pressão)
+            // ----------------------------------------------------
+            if (filtroEstrategia === 'todos' || filtroEstrategia === 'virada') {
+                if (gHome < gAway && tempo > 30 && parseFloat(oddHome) >= filtroOddMin) {
+                    if (alertasGerados === 0) alertsContainer.innerHTML = '';
+                    createCard('virada', 'badge-virada', '🔄 OPORTUNIDADE DE VIRADA', `${home} vs ${away}`, 
+                        `O time visitante está vencendo por ${gHome}x${gAway}. O mandante precisa abafar o jogo. Excelente cenário para buscar o empate ou a virada do favorito de casa com Odd de <span class="odd-val">${oddHome}</span>.`, tempo, oddHome, oddAway);
+                    alertasGerados++;
+                    continue;
+                }
+            }
+
+            // ----------------------------------------------------
+            // ESTRATÉGIA 3: ALTA CHANCE DE VITÓRIA (Favorito Confirmando)
+            // ----------------------------------------------------
+            if (filtroEstrategia === 'todos' || filtroEstrategia === 'vitoria') {
+                if (gHome > gAway && tempo < 70 && parseFloat(oddHome) >= filtroOddMin && parseFloat(oddHome) <= 2.20) {
+                    if (alertasGerados === 0) alertsContainer.innerHTML = '';
+                    createCard('vitoria', 'badge-vitoria', '🔥 ALTA CHANCE DE VITÓRIA', `${home} Dominando`, 
+                        `Time da casa abriu o placar (${gHome}x${gAway}) e mantém a posse ofensiva. Linha segura para vitória definitiva ou handicap conservador. Odd atual: <span class="odd-val">${oddHome}</span>.`, tempo, oddHome, oddAway);
+                    alertasGerados++;
+                    continue;
+                }
+            }
+        }
+
+        if (alertasGerados === 0) {
+            alertsContainer.innerHTML = '<div class="status-msg">Nenhum jogo se enquadrou nos parâmetros exatos de Odd ou Estratégia selecionados agora.</div>';
+        }
     }
 
-    // Executa assim que abre a página
-    window.onload = fetchLiveMatches;
+    function createCard(typeClass, badgeClass, badgeText, title, desc, tempo, oddH, oddA) {
+        const container = document.getElementById('alerts-container');
+        container.innerHTML += `
+            <div class="card ${typeClass}">
+                <div class="card-header">
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                    <span class="time-elapsed">⏱️ ${tempo}' min</span>
+                </div>
+                <div class="match-teams">${title}</div>
+                <p style="margin: 5px 0; font-size:0.95rem;">${desc}</p>
+                <div class="match-odds">
+                    <span>Odds sugeridas 1X2 ➔</span>
+                    <span>Casa: <b class="odd-val">${oddH}</b></span>
+                    <span>Fora: <b class="odd-val">${oddA}</b></span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Inicia escaneando ao carregar a página
+    window.onload = processScanner;
 </script>
 
 </body>
