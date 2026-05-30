@@ -15,6 +15,7 @@
 </head>
 <body class="bg-[#0b0f12] text-slate-100 font-sans min-h-screen flex flex-col">
 
+    <!-- --- CABEÇALHO --- -->
     <header class="max-w-6xl w-full mx-auto px-6 pt-8 pb-4">
         <div class="flex items-center gap-3">
             <i data-lucide="shield-alert" class="text-[#2ecc71] w-8 h-8"></i>
@@ -27,11 +28,13 @@
         </p>
     </header>
 
+    <!-- --- PAINEL DE CONTROLES E FILTROS --- -->
     <main class="max-w-6xl w-full mx-auto px-6 flex-1 flex flex-col gap-6">
         <section class="bg-[#1e272e] p-5 rounded-xl border border-slate-800 shadow-lg space-y-4">
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 
+                <!-- Seleção de Estratégia / Mercado -->
                 <div>
                     <label for="select-estrategia" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                         Estratégia / Mercado:
@@ -44,6 +47,7 @@
                     </select>
                 </div>
 
+                <!-- Input Odd Mínima -->
                 <div>
                     <label for="odd-min" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                         Odd Mínima:
@@ -52,6 +56,7 @@
                         class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-[#2ecc71] transition-colors">
                 </div>
 
+                <!-- Input Odd Máxima -->
                 <div>
                     <label for="odd-max" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                         Odd Máxima:
@@ -60,6 +65,7 @@
                         class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-[#2ecc71] transition-colors">
                 </div>
 
+                <!-- Botão Master -->
                 <button id="btn-buscar" onclick="executarBuscaRobot()"
                     class="w-full bg-[#2ecc71] hover:bg-[#27ae60] text-white font-bold h-[46px] rounded-lg shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
                     <i data-lucide="zap" class="w-5 h-5"></i>
@@ -69,9 +75,11 @@
             </div>
         </section>
 
+        <!-- --- ÁREA DE RESULTADOS (CARDS) --- -->
         <section class="flex-1 bg-[#0f1418] border border-slate-800 rounded-xl p-6 min-h-[400px] flex flex-col shadow-inner">
             <div id="container-resultados" class="flex-1 overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-4">
                 
+                <!-- Estado Inicial -->
                 <div id="placeholder-text" class="m-auto text-center max-w-md px-4 py-20">
                     <i data-lucide="activity" class="w-12 h-12 text-slate-600 mx-auto mb-4 animate-pulse"></i>
                     <p class="text-slate-500 italic text-sm">
@@ -83,6 +91,7 @@
         </section>
     </main>
 
+    <!-- --- BARRA DE STATUS INFERIOR --- -->
     <footer class="max-w-6xl w-full mx-auto px-6 py-4 border-t border-slate-900 flex justify-between items-center text-xs text-slate-500">
         <div class="flex items-center gap-2">
             <span id="status-indicator" class="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -91,13 +100,15 @@
         <div>SQUADRADRY Intelligent Engine v2.5</div>
     </footer>
 
+    <!-- --- LÓGICA DE PROGRAMAÇÃO (JAVASCRIPT) --- -->
     <script>
         lucide.createIcons();
 
         const API_KEY = "17ff5de216b7d5283de72a97f0ebb49c";
         const API_BASE_URL = "https://api.the-odds-api.com/v4/sports/soccer/odds/";
+        // Proxy público para quebrar o bloqueio de segurança de requisições Web (CORS)
+        const PROXY_URL = "https://api.allorigins.win/raw?url=";
 
-        // Adapta os ranges de Odds recomendados automaticamente ao mudar a estratégia
         function ajustarFiltrosPorEstrategia() {
             const estrategia = document.getElementById("select-estrategia").value;
             const inputMin = document.getElementById("odd-min");
@@ -111,11 +122,11 @@
                 inputMax.value = "2.10";
             } else if (estrategia === "viradas") {
                 inputMin.value = "4.00";
-                inputMax.value = "9.50"; // Odds altas onde o time secundário pode surpreender ou gerar trading de valor
+                inputMax.value = "9.50";
             }
         }
 
-        async function ejecutarBuscaRobot() {
+        async function executarBuscaRobot() {
             const btnBuscar = document.getElementById("btn-buscar");
             const lblStatus = document.getElementById("lbl-status");
             const statusIndicator = document.getElementById("status-indicator");
@@ -130,19 +141,20 @@
                 return;
             }
 
-            // Animação de Loading
             btnBuscar.disabled = true;
             btnBuscar.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></svg> <span>PROCESSANDO MERCADOS...</span>`;
-            lblStatus.innerText = "Consultando base de dados e eliminando duplicatas...";
+            lblStatus.innerText = "Ignorando barreiras de segurança e puxando dados...";
             statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
             container.innerHTML = "";
 
             try {
-                // Altera o parâmetro de mercado da API caso seja Over de Gols (btts ou h2h servem como base analítica para puxar os eventos estruturados)
                 const mercadoAPI = (estrategia === "over15ht") ? "btts" : "h2h";
-                const urlCompleta = `${API_BASE_URL}?apiKey=${API_KEY}&regions=eu&markets=${mercadoAPI}&oddsFormat=decimal`;
+                // URL original montada
+                const urlOriginal = `${API_BASE_URL}?apiKey=${API_KEY}&regions=eu&markets=${mercadoAPI}&oddsFormat=decimal`;
+                // URL encapsulada no Proxy para burlar o bloqueio CORS do navegador
+                const urlFinal = `${PROXY_URL}${encodeURIComponent(urlOriginal)}`;
                 
-                const resposta = await fetch(urlCompleta);
+                const resposta = await fetch(urlFinal);
 
                 if (resposta.status === 401) { exibirMensagemErro("🔑 Erro: Chave de API inválida."); return; }
                 if (resposta.status === 429) { exibirMensagemErro("⚠️ Limite de requisições esgotado na chave padrão."); return; }
@@ -155,7 +167,6 @@
                     return;
                 }
 
-                // OBJETO DICIONÁRIO DE CONTROLE DE DUPLICADOS (Melhor odd por partida/palpite)
                 const melhoresOportunidades = {};
 
                 jogos.forEach(jogo => {
@@ -177,7 +188,6 @@
                                 let precoOdd = outcome.price;
                                 let tipoExibicao = "";
 
-                                // LÓGICA DE FILTRAGEM POR ESTRATÉGIA
                                 let validoParaFiltro = false;
 
                                 if (estrategia === "h2h") {
@@ -187,33 +197,22 @@
                                     else tipoExibicao = "Empate (X)";
                                     
                                 } else if (estrategia === "over15ht") {
-                                    // Simulação analítica matemática baseada em volatilidade de odds para Over 1.5 HT
-                                    // Jogos com alta probabilidade de gols parciais têm correlações rastreáveis
                                     precoOdd = parseFloat((outcome.price * 0.65 + 0.4).toFixed(2));
                                     validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax);
                                     timePalpite = "Mais de 1.5 Gols no 1º Tempo";
-                                    tipoExibicao = "Over 1.5 HT (Live/Pre)";
+                                    tipoExibicao = "Over 1.5 HT";
 
                                 } else if (estrategia === "viradas") {
-                                    // Identifica zebras com odds altas filtradas pelo usuário, propensas à dinâmica de virada
                                     validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax && (timePalpite === homeTeam || timePalpite === awayTeam));
-                                    tipoExibicao = "Chance de Virada / Super Valor";
+                                    tipoExibicao = "Chance de Virada / Valor";
                                 }
 
                                 if (validoParaFiltro) {
-                                    // GERADOR DE CHAVE ÚNICA: Evita repetir a mesma linha de aposta do mesmo jogo
                                     const chaveUnica = `${homeTeam}_vs_${awayTeam}_${timePalpite}_${estrategia}`;
 
-                                    // Se não existir no mapa ou se essa nova casa de apostas tiver uma ODD maior, atualiza/insere
                                     if (!melhoresOportunidades[chaveUnica] || precoOdd > melhoresOportunidades[chaveUnica].precoOdd) {
                                         melhoresOportunidades[chaveUnica] = {
-                                            liga,
-                                            homeTeam,
-                                            awayTeam,
-                                            casaNome,
-                                            timePalpite,
-                                            precoOdd,
-                                            tipoExibicao
+                                            liga, homeTeam, awayTeam, casaNome, timePalpite, precoOdd, tipoExibicao
                                         };
                                     }
                                 }
@@ -222,7 +221,6 @@
                     });
                 });
 
-                // RENDERIZAÇÃO DOS CARDS EXCLUSIVOS FILTRADOS
                 const chavesFinais = Object.keys(melhoresOportunidades);
 
                 if (chavesFinais.length === 0) {
@@ -235,7 +233,6 @@
                     const card = document.createElement("div");
                     card.className = "bg-[#161d24] border border-slate-800 rounded-xl p-5 hover:border-[#2ecc71]/40 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm";
                     
-                    // Altera a cor da badge caso seja virada ou gols
                     let badgeColor = "text-[#2ecc71] bg-emerald-500/10";
                     if (estrategia === "over15ht") badgeColor = "text-cyan-400 bg-cyan-500/10";
                     if (estrategia === "viradas") badgeColor = "text-amber-400 bg-amber-500/10";
@@ -269,7 +266,7 @@
 
             } catch (erro) {
                 exibirMensagemErro(`Falha crítica de processamento: ${erro.message}`);
-            } {
+            } finally {
                 btnBuscar.disabled = false;
                 btnBuscar.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i> <span>ESCANEAR MERCADO</span>`;
                 lucide.createIcons();
