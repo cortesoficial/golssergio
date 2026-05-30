@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALEX PRO | Live & Pre-Match Matrix</title>
+    <title>ALEX PRO | Matrix Inteligente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;800;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; }
         .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -28,109 +28,116 @@
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
 
-    <header class="bg-[#0f172a] border-b border-slate-800 px-6 py-4 flex justify-between items-center z-10 shrink-0 shadow-md">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                <i data-lucide="crosshair" class="text-emerald-500"></i>
+    <header class="bg-[#0f172a] border-b border-slate-800 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center z-20 shrink-0 shadow-md">
+        <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 md:w-10 md:h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                <i data-lucide="crosshair" class="text-emerald-500 w-5 h-5"></i>
             </div>
             <div>
-                <h1 class="text-xl font-black tracking-widest text-slate-100">ALEX <span class="text-emerald-500">PRO</span></h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Terminal de Análise Avançada</p>
+                <h1 class="text-lg md:text-xl font-black tracking-widest text-slate-100">ALEX <span class="text-emerald-500">PRO</span></h1>
+                <p class="text-[9px] md:text-[10px] text-slate-500 uppercase tracking-widest font-bold">Terminal Multi-Canais</p>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <div id="status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-400">
-                <span id="status-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
-                <span id="status-text">SISTEMA INATIVO</span>
+        <div class="flex items-center gap-3 md:gap-4">
+            <div id="status-badge" class="flex items-center gap-1.5 px-2.5 py-1 md:py-1.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] md:text-xs font-bold text-slate-400">
+                <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span id="status-text" class="hidden sm:inline">SISTEMA INATIVO</span>
             </div>
             <div class="text-right">
-                <p class="text-[10px] text-slate-500 uppercase font-bold">Próxima Varredura</p>
-                <p id="countdown" class="text-lg font-mono font-bold text-emerald-500">00s</p>
+                <p class="text-[9px] text-slate-500 uppercase font-bold">Varredura</p>
+                <p id="countdown" class="text-sm md:text-lg font-mono font-bold text-emerald-500">00s</p>
             </div>
         </div>
     </header>
 
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 flex-col md:flex-row overflow-hidden">
         
-        <aside class="w-80 bg-[#1e293b] border-r border-slate-800 flex flex-col z-10 shrink-0 shadow-xl">
-            <div class="p-6 flex-1 overflow-y-auto custom-scrollbar">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-700 pb-2 mb-6">Parâmetros do Radar</h2>
+        <aside class="w-full md:w-80 bg-[#1e293b] border-b md:border-b-0 md:border-r border-slate-800 flex flex-col z-10 shrink-0 shadow-xl max-h-[75vh] md:max-h-full overflow-hidden">
+            
+            <button onclick="toggleFiltrosMobile()" class="flex md:hidden items-center justify-between px-4 py-3 bg-[#182232] border-b border-slate-800 w-full text-left">
+                <div class="flex items-center gap-2 text-xs font-black text-slate-300 uppercase tracking-wider">
+                    <i data-lucide="sliders-horizontal" class="w-4 h-4 text-emerald-500"></i>
+                    <span>Ajustar Filtros & Opções</span>
+                </div>
+                <i id="chevron-mobile" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+            </button>
+
+            <div id="filter-content" class="hidden md:block p-4 md:p-6 flex-1 overflow-y-auto custom-scrollbar space-y-5 md:space-y-6">
+                <h2 class="hidden md:block text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-700 pb-2 mb-2">Parâmetros do Radar</h2>
                 
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-300 uppercase mb-2">Estratégia / Mercado</label>
-                        <select id="cfg-market" onchange="autoCalibrarFiltros()" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-3 text-sm focus:border-emerald-500 outline-none transition-colors font-semibold">
-                            <option value="vitorias">Vitórias (1X2 / Seco)</option>
-                            <option value="gols">Gols (+1.5 / Over)</option>
-                            <option value="escanteios">Escanteios (Corners)</option>
-                            <option value="viradas">Possíveis Viradas (Zebras)</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-[10px] md:text-[11px] font-bold text-slate-300 uppercase mb-1.5">Estratégia / Mercado</label>
+                    <select id="cfg-market" onchange="autoCalibrarFiltros()" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2.5 text-xs md:text-sm focus:border-emerald-500 outline-none font-semibold text-slate-200">
+                        <option value="vitorias">Vitórias (1X2 / Seco)</option>
+                        <option value="gols">Gols (+1.5 / Over)</option>
+                        <option value="escanteios">Escanteios (Corners)</option>
+                        <option value="viradas">Possíveis Viradas (Zebras)</option>
+                    </select>
+                </div>
 
-                    <div>
-                        <div class="flex justify-between items-end mb-2">
-                            <label class="text-[11px] font-bold text-slate-300 uppercase">Confiança Mínima</label>
-                            <span class="text-emerald-500 font-bold text-sm" id="lbl-prob">55%</span>
-                        </div>
-                        <input type="range" id="cfg-prob" min="5" max="95" value="55" class="w-full accent-emerald-500" oninput="document.getElementById('lbl-prob').innerText = this.value + '%'">
+                <div>
+                    <div class="flex justify-between items-end mb-1.5">
+                        <label class="text-[10px] md:text-[11px] font-bold text-slate-300 uppercase">Confiança Mínima</label>
+                        <span class="text-emerald-500 font-bold text-xs md:text-sm" id="lbl-prob">55%</span>
                     </div>
+                    <input type="range" id="cfg-prob" min="5" max="95" value="55" class="w-full accent-emerald-500" oninput="document.getElementById('lbl-prob').innerText = this.value + '%'">
+                </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-300 uppercase mb-2">Odd Min</label>
-                            <input type="number" id="cfg-odd-min" value="1.50" step="0.05" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-center focus:border-emerald-500 outline-none font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-300 uppercase mb-2">Odd Max</label>
-                            <input type="number" id="cfg-odd-max" value="2.20" step="0.05" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-center focus:border-emerald-500 outline-none font-mono">
-                        </div>
-                    </div>
-
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-300 uppercase mb-2">Ciclo de Varredura</label>
-                        <select id="cfg-interval" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-3 text-sm focus:border-emerald-500 outline-none">
-                            <option value="15">Ultra Rápido (15s)</option>
-                            <option value="30" selected>Rápido (30s)</option>
-                            <option value="60">Padrão (60s)</option>
-                        </select>
+                        <label class="block text-[10px] md:text-[11px] font-bold text-slate-300 uppercase mb-1.5">Odd Min</label>
+                        <input type="number" id="cfg-odd-min" value="1.50" step="0.05" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2 text-xs md:text-sm text-center focus:border-emerald-500 outline-none font-mono text-slate-200">
                     </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1.5">Odd Max</label>
+                        <input type="number" id="cfg-odd-max" value="2.20" step="0.05" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2 text-xs md:text-sm text-center focus:border-emerald-500 outline-none font-mono text-slate-200">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] md:text-[11px] font-bold text-slate-300 uppercase mb-1.5">Ciclo de Varredura</label>
+                    <select id="cfg-interval" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2.5 text-xs md:text-sm focus:border-emerald-500 outline-none text-slate-200">
+                        <option value="15">Ultra Rápido (15s)</option>
+                        <option value="30" selected>Rápido (30s)</option>
+                        <option value="60">Padrão (60s)</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="p-6 border-t border-slate-800 bg-[#1e293b]">
-                <button id="btn-toggle" onclick="toggleRadar()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95">
-                    <i data-lucide="power" class="w-5 h-5"></i>
+            <div class="p-4 md:p-6 border-t border-slate-800 bg-[#1e293b] shrink-0">
+                <button id="btn-toggle" onclick="toggleRadar()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 md:py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-xs md:text-sm active:scale-95">
+                    <i data-lucide="power" class="w-4 h-4 md:w-5 md:h-5"></i>
                     <span id="btn-text">INICIAR RADAR</span>
                 </button>
             </div>
         </aside>
 
-        <main class="flex-1 bg-slate-900 p-8 overflow-y-auto custom-scrollbar flex flex-col">
+        <main class="flex-1 bg-slate-900 p-4 md:p-8 overflow-y-auto custom-scrollbar flex flex-col">
             
-            <div class="flex gap-2 border-b border-slate-800 pb-3 mb-6 shrink-0">
-                <button id="tab-pre" onclick="switchTab('pre')" class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all flex items-center gap-2">
-                    <i data-lucide="layers" class="w-4 h-4"></i> Radar Pré-Jogo
+            <div class="flex gap-2 border-b border-slate-800 pb-3 mb-4 md:mb-6 shrink-0 w-full">
+                <button id="tab-pre" onclick="switchTab('pre')" class="flex-1 md:flex-initial text-center justify-center px-4 md:px-5 py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all flex items-center gap-2">
+                    <i data-lucide="layers" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> Pré-Jogo
                 </button>
-                <button id="tab-live" onclick="switchTab('live')" class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-red-500 pulse-live"></span> Ao Vivo / In-Play
+                <button id="tab-live" onclick="switchTab('live')" class="flex-1 md:flex-initial text-center justify-center px-4 md:px-5 py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 pulse-live"></span> Ao Vivo
                 </button>
             </div>
 
-            <div class="flex justify-between items-center mb-6 shrink-0">
-                <h2 id="panel-title" class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <div class="flex justify-between items-center mb-4 md:mb-6 shrink-0 gap-2">
+                <h2 id="panel-title" class="text-sm md:text-lg font-bold text-slate-100 flex items-center gap-2 truncate">
                     <i data-lucide="activity" class="text-emerald-500"></i> Entradas Confirmadas (Pré-Jogo)
                 </h2>
-                <button onclick="limparGrid()" class="text-xs text-slate-500 hover:text-slate-300 uppercase font-bold flex items-center gap-1 transition-colors">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Painel
+                <button onclick="limparGrid()" class="text-[10px] md:text-xs text-slate-500 hover:text-slate-300 uppercase font-bold flex items-center gap-1 transition-colors whitespace-nowrap">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Limpar Painel</span>
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                <div id="grid-alertas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <div id="empty-state" class="col-span-full flex flex-col items-center justify-center py-40 text-slate-600">
-                        <i data-lucide="radar" class="w-16 h-16 mb-4 opacity-30"></i>
-                        <p class="font-medium text-sm">Pronto para iniciar varredura multicanais.</p>
-                        <p class="text-xs mt-2 opacity-50">Defina os parâmetros e ligue o motor do ALEX PRO.</p>
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                <div id="grid-alertas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                    <div id="empty-state" class="col-span-full flex flex-col items-center justify-center py-24 md:py-40 text-slate-600">
+                        <i data-lucide="radar" class="w-12 h-12 md:w-16 md:h-16 mb-4 opacity-30"></i>
+                        <p class="font-medium text-xs md:text-sm text-center px-4">Pronto para iniciar varredura multicanais.</p>
+                        <p class="text-[10px] md:text-xs mt-1.5 opacity-50 text-center px-4">Configure as métricas e inicie o motor.</p>
                     </div>
                 </div>
             </div>
@@ -164,19 +171,32 @@
         const alertSound = document.getElementById('alert-sound');
         const panelTitle = document.getElementById('panel-title');
 
+        // Controle do painel retrátil no Celular
+        function toggleFiltrosMobile() {
+            const content = document.getElementById('filter-content');
+            const chevron = document.getElementById('chevron-mobile');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
         function switchTab(tab) {
             currentTab = tab;
             const tabPre = document.getElementById('tab-pre');
             const tabLive = document.getElementById('tab-live');
 
             if (tab === 'pre') {
-                tabPre.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all flex items-center gap-2";
-                tabLive.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2";
-                panelTitle.innerHTML = `<i data-lucide="activity" class="text-emerald-500"></i> Entradas Confirmadas (Pré-Jogo)`;
+                tabPre.className = "flex-1 md:flex-initial text-center justify-center px-4 md:px-5 py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all flex items-center gap-2";
+                tabLive.className = "flex-1 md:flex-initial text-center justify-center px-4 md:px-5 py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2";
+                panelTitle.innerHTML = `<i data-lucide="activity" class="text-emerald-500 w-4 h-4"></i> Entradas Confirmadas (Pré-Jogo)`;
             } else {
-                tabLive.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 transition-all flex items-center gap-2";
-                tabPre.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2";
-                panelTitle.innerHTML = `<i data-lucide="tv-2" class="text-red-500 animate-pulse"></i> Monitoramento Em Tempo Real (Ao Vivo)`;
+                tabLive.className = "flex-1 md:flex-initial text-center justify-center px-4 md:px-5 py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 transition-all flex items-center gap-2";
+                tabPre.className = "flex-1 md:flex-initial text-center justify-center px-4 md:px-5 py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2";
+                panelTitle.innerHTML = `<i data-lucide="tv-2" class="text-red-500 w-4 h-4 animate-pulse"></i> Monitoramento Ao Vivo (In-Play)`;
             }
             lucide.createIcons();
             reRenderGrid();
@@ -187,8 +207,7 @@
             const prob = document.getElementById('cfg-prob');
             const oddMin = document.getElementById('cfg-odd-min');
             const oddMax = document.getElementById('cfg-odd-max');
-            document.getElementById('lbl-prob').innerText = prob.value + '%';
-
+            
             if (strat === 'vitorias') { oddMin.value = "1.50"; oddMax.value = "2.20"; prob.value = "55"; }
             else if (strat === 'gols') { oddMin.value = "1.40"; oddMax.value = "2.00"; prob.value = "60"; }
             else if (strat === 'escanteios') { oddMin.value = "1.70"; oddMax.value = "2.50"; prob.value = "50"; }
@@ -204,9 +223,14 @@
                 btnToggle.classList.replace('hover:bg-emerald-500', 'hover:bg-red-500');
                 btnText.innerText = "PARAR RADAR";
                 
-                statusBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-bold text-emerald-400";
-                statusDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
+                statusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 md:py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] md:text-xs font-bold text-emerald-400";
+                statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping";
                 statusText.innerText = "RADAR ATIVO";
+
+                if (window.innerWidth < 768) {
+                    document.getElementById('filter-content').classList.add('hidden');
+                    document.getElementById('chevron-mobile').style.transform = 'rotate(0deg)';
+                }
 
                 if (emptyState) emptyState.style.display = 'none';
                 
@@ -218,8 +242,8 @@
                 btnToggle.classList.replace('hover:bg-red-500', 'hover:bg-emerald-500');
                 btnText.innerText = "INICIAR RADAR";
                 
-                statusBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-400";
-                statusDot.className = "w-2 h-2 rounded-full bg-slate-500";
+                statusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 md:py-1.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] md:text-xs font-bold text-slate-400";
+                statusDot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
                 statusText.innerText = "SISTEMA INATIVO";
                 
                 clearInterval(countdownInterval);
@@ -331,17 +355,13 @@
                 if (preMatches.size === 0 && !isRunning) { grid.appendChild(emptyState); emptyState.style.display = 'flex'; }
                 else { if(emptyState) emptyState.style.display = 'none'; }
                 
-                preMatches.forEach(item => {
-                    renderizarCardPre(item);
-                });
+                preMatches.forEach(item => { renderizarCardPre(item); });
             } else {
                 if (liveMatches.size === 0 && isRunning) mostrarAvisoFiltro();
                 if (liveMatches.size === 0 && !isRunning) { grid.appendChild(emptyState); emptyState.style.display = 'flex'; }
                 else { if(emptyState) emptyState.style.display = 'none'; }
                 
-                liveMatches.forEach((item, id) => {
-                    renderizarCardLive(item, id);
-                });
+                liveMatches.forEach((item, id) => { renderizarCardLive(item, id); });
             }
             lucide.createIcons();
         }
@@ -351,29 +371,29 @@
             const badgeColor = obterBadgeColor(item.strat);
 
             const card = document.createElement('div');
-            card.className = "glass-panel p-5 rounded-2xl border-slate-700 flex flex-col justify-between shadow-md";
+            card.className = "glass-panel p-4 md:p-5 rounded-2xl border-slate-700 flex flex-col justify-between shadow-md";
             card.innerHTML = `
                 <div>
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-start mb-3 md:mb-4">
                         <div>
-                            <span class="inline-block px-2 py-1 ${badgeColor} text-[9px] font-bold rounded uppercase tracking-wider mb-2">
+                            <span class="inline-block px-2 py-0.5 md:py-1 ${badgeColor} text-[9px] font-bold rounded uppercase tracking-wider mb-2">
                                 <i data-lucide="clock" class="inline w-3 h-3 mr-1"></i> Pré-Jogo | ${timeHoraLocal}
                             </span>
-                            <h3 class="font-bold text-sm text-slate-100 leading-tight">${item.jogo.home_team.split('(')[0]}<br><span class="text-slate-500 font-normal">vs</span> ${item.jogo.away_team.split('(')[0]}</h3>
+                            <h3 class="font-bold text-xs md:text-sm text-slate-100 leading-tight">${item.jogo.home_team.split('(')[0]}<br><span class="text-slate-500 font-normal text-[11px]">vs</span> ${item.jogo.away_team.split('(')[0]}</h3>
                         </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">ODD</p>
-                            <p class="text-2xl font-black text-emerald-500 leading-none">${item.price.toFixed(2)}</p>
+                        <div class="text-right shrink-0">
+                            <p class="text-[9px] text-slate-500 font-bold uppercase mb-0.5">ODD</p>
+                            <p class="text-xl md:text-2xl font-black text-emerald-500 leading-none">${item.price.toFixed(2)}</p>
                         </div>
                     </div>
-                    <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800 flex justify-between items-center mb-4">
-                        <div><p class="text-[10px] text-slate-500 uppercase font-bold">Pick</p><p class="text-xs font-bold text-slate-200">${item.targetName}</p></div>
-                        <div class="text-right"><p class="text-[10px] text-slate-500 uppercase font-bold">Bookie</p><p class="text-xs font-bold text-emerald-400">${item.casa}</p></div>
+                    <div class="bg-[#0f172a] p-2.5 md:p-3 rounded-lg border border-slate-800 flex justify-between items-center mb-3 md:mb-4 text-[11px] md:text-xs">
+                        <div><p class="text-[9px] text-slate-500 uppercase font-bold">Pick</p><p class="font-bold text-slate-200">${item.targetName}</p></div>
+                        <div class="text-right"><p class="text-[9px] text-slate-500 uppercase font-bold">Bookie</p><p class="font-bold text-emerald-400">${item.casa}</p></div>
                     </div>
                 </div>
                 <div class="space-y-1.5 mt-auto">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400"><span>CONFIDÊNCIA</span><span class="text-emerald-500">${item.prob}%</span></div>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full rounded-full" style="width: ${item.prob}%"></div></div>
+                    <div class="flex justify-between text-[9px] md:text-[10px] font-bold text-slate-400"><span>CONFIDÊNCIA</span><span class="text-emerald-500">${item.prob}%</span></div>
+                    <div class="w-full bg-slate-800 h-1 md:h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full rounded-full" style="width: ${item.prob}%"></div></div>
                 </div>
             `;
             grid.appendChild(card);
@@ -383,30 +403,30 @@
             const badgeColor = obterBadgeColor(item.strat);
 
             const card = document.createElement('div');
-            card.className = "glass-panel p-5 rounded-2xl border-red-500/30 flex flex-col justify-between shadow-[0_4px_20px_rgba(239,68,68,0.05)]";
+            card.className = "glass-panel p-4 md:p-5 rounded-2xl border-red-500/30 flex flex-col justify-between shadow-[0_4px_20px_rgba(239,68,68,0.05)]";
             card.innerHTML = `
                 <div>
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-start mb-3 md:mb-4">
                         <div>
                             <div class="flex items-center gap-1.5 mb-2">
-                                <span class="inline-block px-2 py-1 ${badgeColor} text-[9px] font-bold rounded uppercase tracking-wider">AO VIVO</span>
-                                <span id="min-${id}" class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-mono font-bold rounded">${item.minuto}' min</span>
+                                <span class="inline-block px-2 py-0.5 ${badgeColor} text-[9px] font-bold rounded uppercase tracking-wider">AO VIVO</span>
+                                <span id="min-${id}" class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-mono font-bold rounded">${item.minuto}' min</span>
                             </div>
-                            <h3 class="font-bold text-sm text-slate-100 leading-tight">${item.jogo.home_team.split('(')[0]}<br><span class="text-slate-500 font-normal">vs</span> ${item.jogo.away_team.split('(')[0]}</h3>
+                            <h3 class="font-bold text-xs md:text-sm text-slate-100 leading-tight">${item.jogo.home_team.split('(')[0]}<br><span class="text-slate-500 font-normal text-[11px]">vs</span> ${item.jogo.away_team.split('(')[0]}</h3>
                         </div>
-                        <div class="text-right">
-                            <span id="score-${id}" class="inline-block text-xs font-mono font-black bg-slate-900 px-2 py-1 rounded text-slate-300 border border-slate-800 mb-1">${item.golsHome} - ${item.golsAway}</span>
-                            <p class="text-2xl font-black text-red-400 leading-none">${item.price.toFixed(2)}</p>
+                        <div class="text-right shrink-0">
+                            <span id="score-${id}" class="inline-block text-[11px] font-mono font-black bg-slate-900 px-2 py-0.5 rounded text-slate-300 border border-slate-800 mb-1">${item.golsHome} - ${item.golsAway}</span>
+                            <p class="text-xl md:text-2xl font-black text-red-400 leading-none">${item.price.toFixed(2)}</p>
                         </div>
                     </div>
-                    <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800 flex justify-between items-center mb-4">
-                        <div><p class="text-[10px] text-slate-500 uppercase font-bold">Entrada em Live</p><p class="text-xs font-bold text-slate-200">${item.targetName}</p></div>
-                        <div class="text-right"><p class="text-[10px] text-slate-500 uppercase font-bold">Bookie</p><p class="text-xs font-bold text-red-400">${item.casa}</p></div>
+                    <div class="bg-[#0f172a] p-2.5 md:p-3 rounded-lg border border-slate-800 flex justify-between items-center mb-3 md:mb-4 text-[11px] md:text-xs">
+                        <div><p class="text-[9px] text-slate-500 uppercase font-bold">Entrada em Live</p><p class="font-bold text-slate-200">${item.targetName}</p></div>
+                        <div class="text-right"><p class="text-[9px] text-slate-500 uppercase font-bold">Bookie</p><p class="font-bold text-red-400">${item.casa}</p></div>
                     </div>
                 </div>
                 <div class="space-y-1.5 mt-auto">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400"><span>PRESSÃO / VALOR</span><span class="text-red-400">${item.prob}%</span></div>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div class="bg-red-500 h-full rounded-full" style="width: ${item.prob}%"></div></div>
+                    <div class="flex justify-between text-[9px] md:text-[10px] font-bold text-slate-400"><span>PRESSÃO / VALOR</span><span class="text-red-400">${item.prob}%</span></div>
+                    <div class="w-full bg-slate-800 h-1 md:h-1.5 rounded-full overflow-hidden"><div class="bg-red-500 h-full rounded-full" style="width: ${item.prob}%"></div></div>
                 </div>
             `;
             grid.appendChild(card);
@@ -420,7 +440,7 @@
         }
 
         function mostrarAvisoFiltro() {
-            grid.innerHTML = `<p class="col-span-full text-center text-slate-500 text-sm py-20 italic">Varrendo canais... Nenhum evento correspondente encontrado nos filtros atuais.</p>`;
+            grid.innerHTML = `<p class="col-span-full text-center text-slate-500 text-xs md:text-sm py-16 md:py-20 italic">Varrendo canais... Nenhum evento correspondente encontrado nos filtros atuais.</p>`;
         }
 
         function limparGrid() {
