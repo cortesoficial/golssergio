@@ -3,30 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALEX — Seletor de Oportunidades</title>
+    <title>ALEX — Intelligence Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .gradient-card { background: linear-gradient(145deg, #1e272e, #161d24); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body class="bg-[#0b0f12] text-slate-200 min-h-screen p-6">
+<body class="bg-[#0b0f12] text-slate-100 font-sans min-h-screen">
 
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-black text-[#2ecc71] mb-2">ALEX <span class="text-slate-500 font-light">| SELETOR DE VALOR</span></h1>
-        
-        <section class="bg-[#161d24] p-6 rounded-2xl border border-slate-800 mb-8">
-            <div class="flex flex-wrap gap-4 items-end">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase">Margem de Segurança (Probabilidade)</label>
-                    <input type="range" id="filtro-prob" min="40" max="80" value="55" class="w-full accent-[#2ecc71] mt-2" oninput="val.innerText = this.value">
-                    <div class="text-right text-xs font-bold text-[#2ecc71]"><span id="val">55</span>% de confiança mínima</div>
+    <div class="max-w-5xl mx-auto p-6">
+        <header class="mb-8 border-b border-slate-800 pb-6">
+            <h1 class="text-4xl font-black text-[#2ecc71] tracking-tighter">ALEX <span class="text-slate-600 font-light">INTELLIGENCE</span></h1>
+            <p class="text-slate-400 text-sm mt-2">Robô de análise de valor: Identificando oportunidades estatísticas em tempo real.</p>
+        </header>
+
+        <section class="gradient-card p-6 rounded-2xl border border-slate-800 shadow-2xl mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="text-[10px] uppercase font-black text-[#2ecc71]">Confiança Mínima</label>
+                    <input type="range" id="filtro-prob" min="40" max="80" value="55" class="w-full mt-2 accent-[#2ecc71]" oninput="document.getElementById('val').innerText = this.value">
+                    <div class="text-right text-xs font-bold mt-1"><span id="val">55</span>% de margem</div>
                 </div>
-                <button onclick="analisarOportunidades()" class="bg-[#2ecc71] hover:bg-[#27ae60] text-white px-8 py-3 rounded-lg font-bold transition-all">
-                    SELECIONAR MELHORES
-                </button>
+                <div class="col-span-2 flex items-end">
+                    <button id="btn-analise" onclick="analisarOportunidades()" class="w-full bg-[#2ecc71] hover:bg-[#27ae60] text-black font-black py-4 rounded-xl shadow-[0_0_20px_rgba(46,204,113,0.3)] transition-all transform active:scale-95">
+                        INICIAR VARREDURA ANALÍTICA
+                    </button>
+                </div>
             </div>
         </section>
 
-        <div id="grid-oportunidades" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <p class="text-slate-600 italic">O robô está pronto. Clique em "Selecionar Melhores" para iniciar a análise analítica.</p>
+        <div id="grid-oportunidades" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="col-span-full py-20 text-center text-slate-600 border border-dashed border-slate-800 rounded-xl">
+                <i data-lucide="radar" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                <p>Pronto para análise. Defina o critério e inicie a varredura.</p>
+            </div>
         </div>
     </div>
 
@@ -35,42 +47,47 @@
 
         async function analisarOportunidades() {
             const grid = document.getElementById("grid-oportunidades");
+            const btn = document.getElementById("btn-analise");
             const confiancaMin = parseInt(document.getElementById("filtro-prob").value);
             
-            grid.innerHTML = `<p class="text-[#2ecc71] animate-pulse">Analisando grade de jogos... aplicando filtros de valor...</p>`;
+            btn.innerHTML = "PROCESSANDO...";
+            btn.disabled = true;
+            grid.innerHTML = `<p class="col-span-full text-center text-[#2ecc71] animate-pulse">Aguarde: Cruzando dados globais com critério de valor...</p>`;
 
             try {
+                // API com proxy robusto para o GitHub Pages
                 const url = `https://corsproxy.io/?https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey=17ff5de216b7d5283de72a97f0ebb49c&regions=eu&markets=h2h&oddsFormat=decimal`;
                 const res = await fetch(url);
                 const jogos = await res.json();
 
                 grid.innerHTML = "";
-                let selecionados = 0;
+                let count = 0;
 
                 jogos.forEach(jogo => {
-                    // Lógica de Seleção: O robô foca apenas em jogos onde a odd entrega valor
+                    if (!jogo.bookmakers || jogo.bookmakers.length === 0) return;
+
                     jogo.bookmakers[0].markets[0].outcomes.forEach(o => {
                         const prob = Math.round(100 / o.price);
                         
-                        // O "Filtro do Robô": Seleciona odds que não são muito óbvias (acima de 1.5) 
-                        // e que respeitam a margem de segurança que você definiu
+                        // LÓGICA DE SELEÇÃO: Valor entre 1.5 e 2.2 e confiança conforme filtro
                         if (o.price >= 1.50 && o.price <= 2.20 && prob >= confiancaMin) {
-                            selecionados++;
-                            
+                            count++;
                             const card = document.createElement("div");
-                            card.className = "bg-[#1e272e] p-5 rounded-xl border-l-4 border-[#2ecc71] shadow-lg";
+                            card.className = "gradient-card p-5 rounded-2xl border border-slate-700 hover:border-[#2ecc71] transition-all group";
                             card.innerHTML = `
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold">${jogo.sport_title}</span>
+                                <div class="flex justify-between mb-4">
+                                    <span class="text-[9px] font-black uppercase bg-slate-900 text-slate-400 px-2 py-1 rounded">Valor Detectado</span>
                                     <span class="text-[#2ecc71] font-black text-xl">${o.price}</span>
                                 </div>
-                                <h3 class="font-bold text-sm mb-1">${jogo.home_team.split('(')[0]} vs ${jogo.away_team.split('(')[0]}</h3>
-                                <p class="text-[11px] text-slate-400 mb-4">Palpite sugerido: <strong>${o.name}</strong></p>
-                                <div class="flex items-center gap-2">
-                                    <div class="bg-slate-700 w-full h-1.5 rounded-full overflow-hidden">
-                                        <div class="bg-[#2ecc71] h-full" style="width:${prob}%"></div>
+                                <h3 class="font-bold text-sm mb-4 leading-tight">${jogo.home_team.split('(')[0]} <br><span class="text-slate-500">vs</span> ${jogo.away_team.split('(')[0]}</h3>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[10px] font-bold text-slate-400">
+                                        <span>CONFIDÊNCIA</span>
+                                        <span>${prob}%</span>
                                     </div>
-                                    <span class="text-[10px] font-bold whitespace-nowrap">${prob}% Confiança</span>
+                                    <div class="w-full bg-slate-900 h-1.5 rounded-full">
+                                        <div class="bg-[#2ecc71] h-full rounded-full transition-all duration-1000" style="width:${prob}%"></div>
+                                    </div>
                                 </div>
                             `;
                             grid.appendChild(card);
@@ -78,9 +95,12 @@
                     });
                 });
 
-                if (selecionados === 0) grid.innerHTML = `<p class="text-red-400">Nenhum jogo atende aos critérios de valor no momento.</p>`;
+                if (count === 0) grid.innerHTML = `<p class="col-span-full text-center text-red-500">Nenhum valor encontrado nos parâmetros atuais.</p>`;
             } catch (e) {
-                grid.innerHTML = `<p class="text-red-500">Erro na análise. Tente novamente.</p>`;
+                grid.innerHTML = `<p class="col-span-full text-center text-red-500">Erro crítico: Verifique sua conexão ou API.</p>`;
+            } finally {
+                btn.innerHTML = "INICIAR VARREDURA ANALÍTICA";
+                btn.disabled = false;
             }
         }
     </script>
