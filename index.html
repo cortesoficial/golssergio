@@ -3,318 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALEX — Monitor de Odds Real-Time</title>
+    <title>ALEX — Seletor de Oportunidades</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f1418; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2c3e50; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2ecc71; }
-    </style>
 </head>
-<body class="bg-[#0b0f12] text-slate-100 font-sans min-h-screen flex flex-col">
+<body class="bg-[#0b0f12] text-slate-200 min-h-screen p-6">
 
-    <header class="max-w-6xl w-full mx-auto px-6 pt-8 pb-4">
-        <div class="flex items-center gap-3">
-            <i data-lucide="shield-alert" class="text-[#2ecc71] w-8 h-8"></i>
-            <h1 class="text-2xl md:text-3xl font-bold tracking-wider text-[#2ecc71]">
-                ALEX <span class="text-slate-400 font-light text-xl">| SPORTS INTELLIGENCE</span>
-            </h1>
-        </div>
-        <p class="text-sm text-slate-400 mt-1 pl-1">
-            Análise probabilística e cálculo matemático de assertividade em tempo real
-        </p>
-    </header>
-
-    <main class="max-w-6xl w-full mx-auto px-6 flex-1 flex flex-col gap-6">
-        <section class="bg-[#1e272e] p-5 rounded-xl border border-slate-800 shadow-lg space-y-4">
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                
-                <div>
-                    <label for="select-estrategia" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                        Estrategia / Mercado:
-                    </label>
-                    <select id="select-estrategia" onchange="ajustarFiltrosPorEstrategia()"
-                        class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 font-medium focus:outline-none focus:border-[#2ecc71] transition-colors cursor-pointer">
-                        <option value="h2h">Mercado Comum (1X2)</option>
-                        <option value="over15ht">Over 1.5 no 1º Tempo</option>
-                        <option value="viradas">Viradas (Alta Chance / Valor)</option>
-                    </select>
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-black text-[#2ecc71] mb-2">ALEX <span class="text-slate-500 font-light">| SELETOR DE VALOR</span></h1>
+        
+        <section class="bg-[#161d24] p-6 rounded-2xl border border-slate-800 mb-8">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Margem de Segurança (Probabilidade)</label>
+                    <input type="range" id="filtro-prob" min="40" max="80" value="55" class="w-full accent-[#2ecc71] mt-2" oninput="val.innerText = this.value">
+                    <div class="text-right text-xs font-bold text-[#2ecc71]"><span id="val">55</span>% de confiança mínima</div>
                 </div>
-
-                <div>
-                    <label for="odd-min" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                        Odd Mínima:
-                    </label>
-                    <input type="number" id="odd-min" step="0.01" value="1.50" placeholder="Ex: 1.50"
-                        class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-[#2ecc71] transition-colors">
-                </div>
-
-                <div>
-                    <label for="odd-max" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                        Odd Máxima:
-                    </label>
-                    <input type="number" id="odd-max" step="0.01" value="2.30" placeholder="Ex: 2.30"
-                        class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-[#2ecc71] transition-colors">
-                </div>
-
-                <button id="btn-buscar" onclick="executarBuscaRobot()"
-                    class="w-full bg-[#2ecc71] hover:bg-[#27ae60] text-white font-bold h-[46px] rounded-lg shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-                    <i data-lucide="zap" class="w-5 h-5"></i>
-                    <span>ESCANEAR MERCADO</span>
+                <button onclick="analisarOportunidades()" class="bg-[#2ecc71] hover:bg-[#27ae60] text-white px-8 py-3 rounded-lg font-bold transition-all">
+                    SELECIONAR MELHORES
                 </button>
-
             </div>
         </section>
 
-        <section class="flex-1 bg-[#0f1418] border border-slate-800 rounded-xl p-6 min-h-[400px] flex flex-col shadow-inner">
-            <div id="container-resultados" class="flex-1 overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-4">
-                
-                <div id="placeholder-text" class="m-auto text-center max-w-md px-4 py-20">
-                    <i data-lucide="activity" class="w-12 h-12 text-slate-600 mx-auto mb-4 animate-pulse"></i>
-                    <p class="text-slate-500 italic text-sm">
-                        Escolha o mercado alvo acima e clique em 'Escanear Mercado' para processar a probabilidade das entradas.
-                    </p>
-                </div>
-
-            </div>
-        </section>
-    </main>
-
-    <footer class="max-w-6xl w-full mx-auto px-6 py-4 border-t border-slate-900 flex justify-between items-center text-xs text-slate-500">
-        <div class="flex items-center gap-2">
-            <span id="status-indicator" class="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span id="lbl-status">Pronto para calcular probabilidades de Green.</span>
+        <div id="grid-oportunidades" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p class="text-slate-600 italic">O robô está pronto. Clique em "Selecionar Melhores" para iniciar a análise analítica.</p>
         </div>
-        <div>ALEX Intelligent Engine v3.0</div>
-    </footer>
+    </div>
 
     <script>
         lucide.createIcons();
 
-        const API_KEY = "17ff5de216b7d5283de72a97f0ebb49c";
-        const API_BASE_URL = "https://api.the-odds-api.com/v4/sports/soccer/odds/";
-        const PROXY_URL = "https://corsproxy.io/?";
-
-        function ajustarFiltrosPorEstrategia() {
-            const estrategia = document.getElementById("select-estrategia").value;
-            const inputMin = document.getElementById("odd-min");
-            const inputMax = document.getElementById("odd-max");
-
-            if (estrategia === "h2h") {
-                inputMin.value = "1.50";
-                inputMax.value = "2.30";
-            } else if (estrategia === "over15ht") {
-                inputMin.value = "1.40";
-                inputMax.value = "2.10";
-            } else if (estrategia === "viradas") {
-                inputMin.value = "4.00";
-                inputMax.value = "9.50";
-            }
-        }
-
-        async function executarBuscaRobot() {
-            const btnBuscar = document.getElementById("btn-buscar");
-            const lblStatus = document.getElementById("lbl-status");
-            const statusIndicator = document.getElementById("status-indicator");
-            const container = document.getElementById("container-resultados");
-
-            const estrategia = document.getElementById("select-estrategia").value;
-            const oddMin = parseFloat(document.getElementById("odd-min").value);
-            const oddMax = parseFloat(document.getElementById("odd-max").value);
-
-            if (isNaN(oddMin) || isNaN(oddMax)) {
-                alert("Insira limites de Odds válidos.");
-                return;
-            }
-
-            btnBuscar.disabled = true;
-            btnBuscar.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></svg> <span>CALCULANDO PROBABILIDADES...</span>`;
-            lblStatus.innerText = "Baixando cotações globais e aplicando fórmulas analíticas...";
-            statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
-            container.innerHTML = "";
+        async function analisarOportunidades() {
+            const grid = document.getElementById("grid-oportunidades");
+            const confiancaMin = parseInt(document.getElementById("filtro-prob").value);
+            
+            grid.innerHTML = `<p class="text-[#2ecc71] animate-pulse">Analisando grade de jogos... aplicando filtros de valor...</p>`;
 
             try {
-                const mercadoAPI = (estrategia === "over15ht") ? "btts" : "h2h";
-                const urlOriginal = `${API_BASE_URL}?apiKey=${API_KEY}&regions=eu&markets=${mercadoAPI}&oddsFormat=decimal`;
-                const urlFinal = `${PROXY_URL}${encodeURIComponent(urlOriginal)}`;
-                
-                const resposta = await fetch(urlFinal);
+                const url = `https://corsproxy.io/?https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey=17ff5de216b7d5283de72a97f0ebb49c&regions=eu&markets=h2h&oddsFormat=decimal`;
+                const res = await fetch(url);
+                const jogos = await res.json();
 
-                if (resposta.status === 401) { exibirMensagemErro("🔑 Erro: Chave de API inválida."); return; }
-                if (resposta.status === 429) { exibirMensagemErro("⚠️ Limite de requisições esgotado."); return; }
-                if (!resposta.ok) { exibirMensagemErro(`❌ Erro no servidor da API: ${resposta.status}`); return; }
-
-                const jogos = await resposta.json();
-
-                if (!jogos || jogos.length === 0) {
-                    exibirSemOportunidades("Nenhum confronto localizado na grade atual.");
-                    return;
-                }
-
-                const melhoresOportunidades = {};
+                grid.innerHTML = "";
+                let selecionados = 0;
 
                 jogos.forEach(jogo => {
-                    const homeTeam = deleteCountrySuffix(jogo.home_team);
-                    const awayTeam = deleteCountrySuffix(jogo.away_team);
-                    const liga = jogo.sport_title;
-                    
-                    let dataHoraExibicao = "Horário indisponível";
-                    if (jogo.commence_time) {
-                        const dataUtc = new Date(jogo.commence_time);
-                        dataHoraExibicao = dataUtc.toLocaleString('pt-BR', {
-                            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                        });
-                    }
-
-                    if (!jogo.bookmakers) return;
-
-                    jogo.bookmakers.forEach(bookmaker => {
-                        const casaNome = bookmaker.title;
-                        if (!bookmaker.markets) return;
-
-                        bookmaker.markets.forEach(market => {
-                            if (!market.outcomes) return;
-
-                            market.outcomes.forEach(outcome => {
-                                let timePalpite = outcome.name;
-                                let precoOdd = outcome.price;
-                                let tipoExibicao = "";
-
-                                let validoParaFiltro = false;
-
-                                if (estrategia === "h2h") {
-                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax);
-                                    if (timePalpite === jogo.home_team) tipoExibicao = "Vitória do Casa";
-                                    else if (timePalpite === jogo.away_team) tipoExibicao = "Vitória do Fora";
-                                    else tipoExibicao = "Empate (X)";
-                                    
-                                } else if (estrategia === "over15ht") {
-                                    precoOdd = parseFloat((outcome.price * 0.65 + 0.4).toFixed(2));
-                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax);
-                                    timePalpite = "Mais de 1.5 Gols no 1º Tempo";
-                                    tipoExibicao = "Over 1.5 HT";
-
-                                } else if (estrategia === "viradas") {
-                                    validoParaFiltro = (precoOdd >= oddMin && precoOdd <= oddMax && (timePalpite === jogo.home_team || timePalpite === job.away_team));
-                                    tipoExibicao = "Chance de Virada / Valor";
-                                }
-
-                                if (validoParaFiltro) {
-                                    const chaveUnica = `${homeTeam}_vs_${awayTeam}_${timePalpite}_${estrategia}`;
-
-                                    if (!melhoresOportunidades[chaveUnica] || precoOdd > melhoresOportunidades[chaveUnica].precoOdd) {
-                                        melhoresOportunidades[chaveUnica] = {
-                                            liga, homeTeam, awayTeam, casaNome, timePalpite, precoOdd, tipoExibicao, dataHoraExibicao
-                                        };
-                                    }
-                                }
-                            });
-                        });
+                    // Lógica de Seleção: O robô foca apenas em jogos onde a odd entrega valor
+                    jogo.bookmakers[0].markets[0].outcomes.forEach(o => {
+                        const prob = Math.round(100 / o.price);
+                        
+                        // O "Filtro do Robô": Seleciona odds que não são muito óbvias (acima de 1.5) 
+                        // e que respeitam a margem de segurança que você definiu
+                        if (o.price >= 1.50 && o.price <= 2.20 && prob >= confiancaMin) {
+                            selecionados++;
+                            
+                            const card = document.createElement("div");
+                            card.className = "bg-[#1e272e] p-5 rounded-xl border-l-4 border-[#2ecc71] shadow-lg";
+                            card.innerHTML = `
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold">${jogo.sport_title}</span>
+                                    <span class="text-[#2ecc71] font-black text-xl">${o.price}</span>
+                                </div>
+                                <h3 class="font-bold text-sm mb-1">${jogo.home_team.split('(')[0]} vs ${jogo.away_team.split('(')[0]}</h3>
+                                <p class="text-[11px] text-slate-400 mb-4">Palpite sugerido: <strong>${o.name}</strong></p>
+                                <div class="flex items-center gap-2">
+                                    <div class="bg-slate-700 w-full h-1.5 rounded-full overflow-hidden">
+                                        <div class="bg-[#2ecc71] h-full" style="width:${prob}%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-bold whitespace-nowrap">${prob}% Confiança</span>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        }
                     });
                 });
 
-                const chavesFinais = Object.keys(melhoresOportunidades);
-
-                if (chavesFinais.length === 0) {
-                    exibirSemOportunidades(`Nenhuma oportunidade exclusiva nesta faixa de odds [${oddMin.toFixed(2)} - ${oddMax.toFixed(2)}].`);
-                    return;
-                }
-
-                chavesFinais.forEach(chave => {
-                    const item = melhoresOportunidades[chave];
-                    
-                    // CÁLCULO PRECISO DA PROBABILIDADE IMPLÍCITA
-                    const probabilidade = Math.min(Math.round(100 / item.precoOdd), 99);
-                    
-                    // Definição de Cores da Barra com base no risco
-                    let barColor = "bg-[#2ecc71]"; // Verde para alta probabilidade
-                    if (probabilidade < 40) barColor = "bg-amber-500"; // Amarelo para risco médio/alto
-                    if (probabilidade < 20) barColor = "bg-red-500"; // Vermelho para zebras/alto risco
-
-                    const card = document.createElement("div");
-                    card.className = "bg-[#161d24] border border-slate-800 rounded-xl p-5 hover:border-[#2ecc71]/40 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm";
-                    
-                    let badgeColor = "text-[#2ecc71] bg-emerald-500/10";
-                    if (estrategia === "over15ht") badgeColor = "text-cyan-400 bg-cyan-500/10";
-                    if (estrategia === "viradas") badgeColor = "text-amber-400 bg-amber-500/10";
-
-                    card.innerHTML = `
-                        <div class="space-y-2 flex-1 w-full">
-                            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wider uppercase">
-                                <span class="px-2 py-0.5 rounded ${badgeColor}">${item.liga}</span>
-                                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 flex items-center gap-1">
-                                    <i data-lucide="clock" class="w-3 h-3 text-[#2ecc71]"></i>
-                                    <span>${item.dataHoraExibicao}</span>
-                                </span>
-                            </div>
-                            
-                            <div class="text-base font-bold text-slate-100 flex items-center gap-2 pt-0.5">
-                                <i data-lucide="swords" class="w-4 h-4 text-slate-500"></i>
-                                <span>${item.homeTeam} <span class="text-slate-500 font-normal text-xs">VS</span> ${item.awayTeam}</span>
-                            </div>
-                            
-                            <div class="text-xs text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1">
-                                <span class="flex items-center gap-1"><i data-lucide="landmark" class="w-3.5 h-3.5 text-slate-500"></i> Casa: <strong class="text-slate-200">${item.casaNome}</strong></span>
-                                <span class="flex items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5 text-slate-500"></i> Alvo: <strong class="text-slate-200">${item.timePalpite}</strong></span>
-                            </div>
-
-                            <div class="pt-2 max-w-md">
-                                <div class="flex justify-between text-[11px] font-bold text-slate-400 mb-1">
-                                    <span class="flex items-center gap-1"><i data-lucide="gauge" class="w-3 h-3 text-slate-500"></i> CHANCE DE BATER:</span>
-                                    <span class="text-slate-200">${probabilidade}%</span>
-                                </div>
-                                <div class="w-full bg-[#0f1418] rounded-full h-1.5 border border-slate-800">
-                                    <div class="${barColor} h-1.5 rounded-full transition-all duration-500" style="width: ${probabilidade}%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-[#0f1418] border border-slate-800 px-5 py-4 rounded-xl text-center self-stretch md:self-auto flex md:flex-col justify-between items-center min-w-[130px] shadow-inner">
-                            <span class="text-[9px] uppercase font-bold tracking-widest text-slate-500">MELHOR ODD</span>
-                            <span class="text-xl font-black text-[#2ecc71]">${item.precoOdd.toFixed(2)}</span>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-
-                const agora = new Date().toLocaleTimeString('pt-BR');
-                lblStatus.innerText = `Varredura limpa finalizada às ${agora}. Exibindo ${chavesFinais.length} entradas exclusivas.`;
-                statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500";
-
-            } catch (erro) {
-                exibirMensagemErro(`Falha de rede (CORS). Tente novamente: ${erro.message}`);
-            } finally {
-                btnBuscar.disabled = false;
-                btnBuscar.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i> <span>ESCANEAR MERCADO</span>`;
-                lucide.createIcons();
+                if (selecionados === 0) grid.innerHTML = `<p class="text-red-400">Nenhum jogo atende aos critérios de valor no momento.</p>`;
+            } catch (e) {
+                grid.innerHTML = `<p class="text-red-500">Erro na análise. Tente novamente.</p>`;
             }
-        }
-
-        function deleteCountrySuffix(name) {
-            return name.replace(/\s*\(.*\)\s*/g, "").trim();
-        }
-
-        function exibirSemOportunidades(msg) {
-            document.getElementById("container-resultados").innerHTML = `
-                <div class="m-auto text-center py-20">
-                    <i data-lucide="filter-x" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
-                    <p class="text-slate-500 italic text-sm">${msg}</p>
-                </div>`;
-            lucide.createIcons();
-        }
-
-        function exibirMensagemErro(mensagem) {
-            document.getElementById("container-resultados").innerHTML = `
-                <div class="m-auto text-center max-w-md px-4 py-10 bg-red-950/20 border border-red-900/50 rounded-xl">
-                    <i data-lucide="octagon-alert" class="w-10 h-10 text-red-500 mx-auto mb-3"></i>
-                    <p class="text-red-200 text-sm font-medium">${mensagem}</p>
-                </div>`;
-            document.getElementById("lbl-status").innerText = "Ocorreu um problema ao escanear.";
-            document.getElementById("status-indicator").className = "w-2 h-2 rounded-full bg-red-500";
-            lucide.createIcons();
         }
     </script>
 </body>
