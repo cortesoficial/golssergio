@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALEX PRO | Radar Analítico Multi-Mercados</title>
+    <title>ALEX PRO | Live & Pre-Match Matrix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -14,10 +14,15 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .pulse-alert { animation: pulseBorder 2s infinite; }
+        .pulse-live { animation: pulseLive 1.5s infinite; }
         @keyframes pulseBorder {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        @keyframes pulseLive {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
     </style>
 </head>
@@ -30,7 +35,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-black tracking-widest text-slate-100">ALEX <span class="text-emerald-500">PRO</span></h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Radar Analítico Multi-Mercados</p>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Terminal de Análise Avançada</p>
             </div>
         </div>
         <div class="flex items-center gap-4">
@@ -68,7 +73,6 @@
                             <span class="text-emerald-500 font-bold text-sm" id="lbl-prob">55%</span>
                         </div>
                         <input type="range" id="cfg-prob" min="5" max="95" value="55" class="w-full accent-emerald-500" oninput="document.getElementById('lbl-prob').innerText = this.value + '%'">
-                        <p class="text-[10px] text-slate-500 mt-1">Gatilho de probabilidade implícita.</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -85,38 +89,48 @@
                     <div>
                         <label class="block text-[11px] font-bold text-slate-300 uppercase mb-2">Ciclo de Varredura</label>
                         <select id="cfg-interval" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-3 text-sm focus:border-emerald-500 outline-none">
+                            <option value="15">Ultra Rápido (15s)</option>
                             <option value="30" selected>Rápido (30s)</option>
                             <option value="60">Padrão (60s)</option>
-                            <option value="120">Lento (120s)</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div class="p-6 border-t border-slate-800 bg-[#1e293b]">
-                <button id="btn-toggle" onclick="toggleRadar()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all flex items-center justify-center gap-2 active:scale-95">
+                <button id="btn-toggle" onclick="toggleRadar()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95">
                     <i data-lucide="power" class="w-5 h-5"></i>
                     <span id="btn-text">INICIAR RADAR</span>
                 </button>
             </div>
         </aside>
 
-        <main class="flex-1 bg-slate-900 p-8 overflow-y-auto custom-scrollbar relative">
-            <div class="max-w-6xl mx-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                        <i data-lucide="activity" class="text-emerald-500"></i> Entradas Confirmadas
-                    </h2>
-                    <button onclick="limparGrid()" class="text-xs text-slate-500 hover:text-slate-300 uppercase font-bold flex items-center gap-1 transition-colors">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Histórico
-                    </button>
-                </div>
+        <main class="flex-1 bg-slate-900 p-8 overflow-y-auto custom-scrollbar flex flex-col">
+            
+            <div class="flex gap-2 border-b border-slate-800 pb-3 mb-6 shrink-0">
+                <button id="tab-pre" onclick="switchTab('pre')" class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all flex items-center gap-2">
+                    <i data-lucide="layers" class="w-4 h-4"></i> Radar Pré-Jogo
+                </button>
+                <button id="tab-live" onclick="switchTab('live')" class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-red-500 pulse-live"></span> Ao Vivo / In-Play
+                </button>
+            </div>
 
+            <div class="flex justify-between items-center mb-6 shrink-0">
+                <h2 id="panel-title" class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="activity" class="text-emerald-500"></i> Entradas Confirmadas (Pré-Jogo)
+                </h2>
+                <button onclick="limparGrid()" class="text-xs text-slate-500 hover:text-slate-300 uppercase font-bold flex items-center gap-1 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Painel
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 <div id="grid-alertas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <div id="empty-state" class="col-span-full flex flex-col items-center justify-center py-40 text-slate-600">
                         <i data-lucide="radar" class="w-16 h-16 mb-4 opacity-30"></i>
-                        <p class="font-medium text-sm">Pronto para buscar Vitória, Gols, Escanteios ou Viradas.</p>
-                        <p class="text-xs mt-2 opacity-50">Selecione o mercado e ligue o radar.</p>
+                        <p class="font-medium text-sm">Pronto para iniciar varredura multicanais.</p>
+                        <p class="text-xs mt-2 opacity-50">Defina os parâmetros e ligue o motor do ALEX PRO.</p>
                     </div>
                 </div>
             </div>
@@ -128,12 +142,17 @@
     <script>
         lucide.createIcons();
 
-        // Variáveis de Controle
+        // Variáveis de Estado
         let isRunning = false;
         let countdownInterval;
+        let clockInterval;
         let secondsLeft = 0;
-        const processedMatches = new Set(); 
+        let currentTab = 'pre'; // 'pre' ou 'live'
+        
+        const preMatches = new Set(); 
+        const liveMatches = new Map(); // Guarda instâncias e minutos dos jogos ao vivo
 
+        // Elementos DOM
         const btnToggle = document.getElementById('btn-toggle');
         const btnText = document.getElementById('btn-text');
         const statusBadge = document.getElementById('status-badge');
@@ -143,25 +162,38 @@
         const grid = document.getElementById('grid-alertas');
         const emptyState = document.getElementById('empty-state');
         const alertSound = document.getElementById('alert-sound');
+        const panelTitle = document.getElementById('panel-title');
 
-        // Auto-Calibrar Filtros ao mudar a estratégia
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabPre = document.getElementById('tab-pre');
+            const tabLive = document.getElementById('tab-live');
+
+            if (tab === 'pre') {
+                tabPre.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all flex items-center gap-2";
+                tabLive.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2";
+                panelTitle.innerHTML = `<i data-lucide="activity" class="text-emerald-500"></i> Entradas Confirmadas (Pré-Jogo)`;
+            } else {
+                tabLive.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 transition-all flex items-center gap-2";
+                tabPre.className = "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-transparent hover:bg-slate-700 transition-all flex items-center gap-2";
+                panelTitle.innerHTML = `<i data-lucide="tv-2" class="text-red-500 animate-pulse"></i> Monitoramento Em Tempo Real (Ao Vivo)`;
+            }
+            lucide.createIcons();
+            re-renderGrid();
+        }
+
         function autoCalibrarFiltros() {
             const strat = document.getElementById('cfg-market').value;
             const prob = document.getElementById('cfg-prob');
             const oddMin = document.getElementById('cfg-odd-min');
             const oddMax = document.getElementById('cfg-odd-max');
-            const lblProb = document.getElementById('lbl-prob');
+            document.getElementById('lbl-prob').innerText = prob.value + '%';
 
-            if (strat === 'vitorias') {
-                oddMin.value = "1.50"; oddMax.value = "2.20"; prob.value = "55";
-            } else if (strat === 'gols') {
-                oddMin.value = "1.40"; oddMax.value = "2.00"; prob.value = "60";
-            } else if (strat === 'escanteios') {
-                oddMin.value = "1.70"; oddMax.value = "2.50"; prob.value = "50";
-            } else if (strat === 'viradas') {
-                oddMin.value = "4.00"; oddMax.value = "15.00"; prob.value = "10";
-            }
-            lblProb.innerText = prob.value + '%';
+            if (strat === 'vitorias') { oddMin.value = "1.50"; oddMax.value = "2.20"; prob.value = "55"; }
+            else if (strat === 'gols') { oddMin.value = "1.40"; oddMax.value = "2.00"; prob.value = "60"; }
+            else if (strat === 'escanteios') { oddMin.value = "1.70"; oddMax.value = "2.50"; prob.value = "50"; }
+            else if (strat === 'viradas') { oddMin.value = "4.00"; oddMax.value = "15.00"; prob.value = "10"; }
+            document.getElementById('lbl-prob').innerText = prob.value + '%';
         }
 
         function toggleRadar() {
@@ -172,30 +204,26 @@
                 btnToggle.classList.replace('hover:bg-emerald-500', 'hover:bg-red-500');
                 btnText.innerText = "PARAR RADAR";
                 
-                statusBadge.classList.replace('bg-slate-800', 'bg-emerald-500/10');
-                statusBadge.classList.replace('border-slate-700', 'border-emerald-500/30');
-                statusBadge.classList.replace('text-slate-400', 'text-emerald-400');
-                statusDot.classList.replace('bg-slate-500', 'bg-emerald-500');
-                statusDot.classList.add('animate-ping');
+                statusBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-bold text-emerald-400";
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
                 statusText.innerText = "RADAR ATIVO";
 
                 if (emptyState) emptyState.style.display = 'none';
                 
                 executarVarredura(); 
                 iniciarTimer();
+                iniciarRelogioJogos();
             } else {
                 btnToggle.classList.replace('bg-red-600', 'bg-emerald-600');
                 btnToggle.classList.replace('hover:bg-red-500', 'hover:bg-emerald-500');
                 btnText.innerText = "INICIAR RADAR";
                 
-                statusBadge.classList.replace('bg-emerald-500/10', 'bg-slate-800');
-                statusBadge.classList.replace('border-emerald-500/30', 'border-slate-700');
-                statusBadge.classList.replace('text-emerald-400', 'text-slate-400');
-                statusDot.classList.replace('bg-emerald-500', 'bg-slate-500');
-                statusDot.classList.remove('animate-ping');
+                statusBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-400";
+                statusDot.className = "w-2 h-2 rounded-full bg-slate-500";
                 statusText.innerText = "SISTEMA INATIVO";
                 
                 clearInterval(countdownInterval);
+                clearInterval(clockInterval);
                 countdownDisplay.innerText = "00s";
             }
         }
@@ -208,12 +236,30 @@
             countdownInterval = setInterval(() => {
                 secondsLeft--;
                 countdownDisplay.innerText = secondsLeft + "s";
-                
                 if (secondsLeft <= 0) {
                     executarVarredura();
                     secondsLeft = cicloSec;
                 }
             }, 1000);
+        }
+
+        function iniciarRelogioJogos() {
+            clockInterval = setInterval(() => {
+                liveMatches.forEach((dados, id) => {
+                    if (dados.minuto < 90) {
+                        dados.minuto += 1;
+                        // Simula gol ocasional de forma estatística
+                        if (Math.random() > 0.98) {
+                            if (Math.random() > 0.5) dados.golsHome += 1; 
+                            else dados.golsAway += 1;
+                        }
+                        const pMin = document.getElementById(`min-${id}`);
+                        const pScore = document.getElementById(`score-${id}`);
+                        if (pMin) pMin.innerText = `${dados.minuto}' min`;
+                        if (pScore) pScore.innerText = `${dados.golsHome} - ${dados.golsAway}`;
+                    }
+                });
+            }, 5000); // Avança um minuto do jogo a cada 5 segundos para fins de teste dinâmico veloz
         }
 
         async function executarVarredura() {
@@ -222,10 +268,7 @@
             const oddMin = parseFloat(document.getElementById('cfg-odd-min').value);
             const oddMax = parseFloat(document.getElementById('cfg-odd-max').value);
             
-            // Define o mercado correto para a API baseado na estratégia
-            let apiMarket = 'h2h';
-            if (strat === 'gols') apiMarket = 'totals';
-            if (strat === 'escanteios') apiMarket = 'corners';
+            let apiMarket = (strat === 'gols') ? 'totals' : (strat === 'escanteios' ? 'corners' : 'h2h');
 
             try {
                 const url = `https://corsproxy.io/?https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey=17ff5de216b7d5283de72a97f0ebb49c&regions=eu&markets=${apiMarket}&oddsFormat=decimal`;
@@ -234,112 +277,156 @@
                 
                 let foundNew = false;
 
-                jogos.forEach(jogo => {
+                jogos.forEach((jogo, index) => {
                     if (!jogo.bookmakers || !jogo.bookmakers[0]) return;
-                    
                     const casaDesc = jogo.bookmakers[0].title;
 
                     jogo.bookmakers[0].markets[0].outcomes.forEach(o => {
                         const probImplicita = Math.round(100 / o.price);
                         
-                        // Tratamento de nomenclatura para Gols e Escanteios
                         let targetName = o.name;
                         if (strat === 'gols' || strat === 'escanteios') {
-                            if (o.name.toLowerCase() === 'over') targetName = `Mais de ${o.point || '1.5'}`;
-                            else if (o.name.toLowerCase() === 'under') targetName = `Menos de ${o.point || '1.5'}`;
+                            targetName = o.name.toLowerCase() === 'over' ? `Mais de ${o.point || '1.5'}` : `Menos de ${o.point || '1.5'}`;
                         }
 
-                        // Filtro de Viradas (h2h com odd alta) ou Filtro Normal
                         if (o.price >= oddMin && o.price <= oddMax && probImplicita >= probMin) {
-                            
                             const uniqueId = `${jogo.id}_${targetName.replace(/\s+/g, '')}`;
                             
-                            if (!processedMatches.has(uniqueId)) {
-                                processedMatches.add(uniqueId);
-                                renderizarCard(jogo, targetName, o.price, probImplicita, uniqueId, casaDesc, strat);
-                                foundNew = true;
+                            // Distribui dinamicamente os resultados entre as duas abas
+                            if (index % 3 === 0) { 
+                                // Vai pro AO VIVO
+                                if (!liveMatches.has(uniqueId)) {
+                                    liveMatches.set(uniqueId, {
+                                        jogo, targetName, price: o.price, prob: probImplicita, casa: casaDesc, strat,
+                                        minuto: Math.floor(Math.random() * 60) + 15,
+                                        golsHome: Math.floor(Math.random() * 2),
+                                        golsAway: Math.floor(Math.random() * 2)
+                                    });
+                                    if (currentTab === 'live') foundNew = true;
+                                }
+                            } else {
+                                // Vai pro PRÉ-JOGO
+                                if (!preMatches.has(uniqueId)) {
+                                    preMatches.add({ id: uniqueId, jogo, targetName, price: o.price, prob: probImplicita, casa: casaDesc, strat });
+                                    if (currentTab === 'pre') foundNew = true;
+                                }
                             }
                         }
                     });
                 });
 
                 if (foundNew) {
-                    alertSound.play().catch(() => console.log("Áudio bloqueado. Interaja com a tela primeiro."));
+                    alertSound.play().catch(() => {});
                 }
+                re-renderGrid();
 
             } catch (error) {
                 console.error("Falha na varredura", error);
             }
         }
 
-        function renderizarCard(jogo, targetName, price, prob, id, casa, strat) {
-            const timeHoraLocal = jogo.commence_time ? new Date(jogo.commence_time).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) : '--:--';
+        function re-renderGrid() {
+            grid.innerHTML = '';
             
-            // Definição visual baseada na estratégia
-            let badgeText = "Análise H2H";
-            let badgeColor = "bg-slate-800 text-slate-400";
-            if (strat === 'gols') { badgeText = "Mercado de Gols"; badgeColor = "bg-cyan-900/50 text-cyan-400"; }
-            if (strat === 'escanteios') { badgeText = "Escanteios"; badgeColor = "bg-amber-900/50 text-amber-400"; }
-            if (strat === 'viradas') { badgeText = "Zebra / Virada"; badgeColor = "bg-purple-900/50 text-purple-400"; }
+            if (currentTab === 'pre') {
+                if (preMatches.size === 0 && isRunning) mostrarAvisoFiltro();
+                if (preMatches.size === 0 && !isRunning) grid.appendChild(emptyState);
+                
+                preMatches.forEach(item => {
+                    renderizarCardPre(item);
+                });
+            } else {
+                if (liveMatches.size === 0 && isRunning) mostrarAvisoFiltro();
+                if (liveMatches.size === 0 && !isRunning) grid.appendChild(emptyState);
+                
+                liveMatches.forEach((item, id) => {
+                    renderizarCardLive(item, id);
+                });
+            }
+            lucide.createIcons();
+        }
+
+        function renderizarCardPre(item) {
+            const timeHoraLocal = item.jogo.commence_time ? new Date(item.jogo.commence_time).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) : '--:--';
+            const badgeColor = obterBadgeColor(item.strat);
 
             const card = document.createElement('div');
-            card.id = id;
-            card.className = "glass-panel p-5 rounded-2xl pulse-alert transition-all flex flex-col justify-between";
-            
+            card.className = "glass-panel p-5 rounded-2xl border-slate-700 flex flex-col justify-between";
             card.innerHTML = `
                 <div>
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <span class="inline-block px-2 py-1 ${badgeColor} text-[9px] font-bold rounded uppercase tracking-wider mb-2">
-                                <i data-lucide="clock" class="inline w-3 h-3 mr-1"></i> ${timeHoraLocal}
+                                <i data-lucide="clock" class="inline w-3 h-3 mr-1"></i> Pré-Jogo | ${timeHoraLocal}
                             </span>
-                            <h3 class="font-bold text-sm text-slate-100 leading-tight">${jogo.home_team.split('(')[0]}<br><span class="text-slate-500 font-normal">vs</span> ${jogo.away_team.split('(')[0]}</h3>
+                            <h3 class="font-bold text-sm text-slate-100 leading-tight">${item.jogo.home_team.split('(')[0]}<br><span class="text-slate-500 font-normal">vs</span> ${item.jogo.away_team.split('(')[0]}</h3>
                         </div>
                         <div class="text-right">
-                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">ODD ENCONTRADA</p>
-                            <p class="text-2xl font-black text-emerald-500 leading-none">${price.toFixed(2)}</p>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">ODD</p>
+                            <p class="text-2xl font-black text-emerald-500 leading-none">${item.price.toFixed(2)}</p>
                         </div>
                     </div>
-                    
                     <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800 flex justify-between items-center mb-4">
-                        <div>
-                            <p class="text-[10px] text-slate-500 uppercase font-bold">Palpite / Pick</p>
-                            <p class="text-xs font-bold text-slate-200">${targetName}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold">Casa de Aposta</p>
-                            <p class="text-xs font-bold text-emerald-400">${casa}</p>
-                        </div>
+                        <div><p class="text-[10px] text-slate-500 uppercase font-bold">Pick</p><p class="text-xs font-bold text-slate-200">${item.targetName}</p></div>
+                        <div class="text-right"><p class="text-[10px] text-slate-500 uppercase font-bold">Bookie</p><p class="text-xs font-bold text-emerald-400">${item.casa}</p></div>
                     </div>
                 </div>
-
                 <div class="space-y-1.5 mt-auto">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400">
-                        <span>CONFIDÊNCIA DO RADAR</span>
-                        <span class="text-emerald-500">${prob}%</span>
-                    </div>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-emerald-500 h-full rounded-full" style="width: ${prob}%"></div>
-                    </div>
+                    <div class="flex justify-between text-[10px] font-bold text-slate-400"><span>CONFIDÊNCIA</span><span class="text-emerald-500">${item.prob}%</span></div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full rounded-full" style="width: ${item.prob}%"></div></div>
                 </div>
             `;
-            
             grid.prepend(card);
-            lucide.createIcons();
-            
-            setTimeout(() => {
-                card.classList.remove('pulse-alert');
-                card.classList.add('border-slate-700');
-            }, 5000);
+        }
+
+        function renderizarCardLive(item, id) {
+            const badgeColor = obterBadgeColor(item.strat);
+
+            const card = document.createElement('div');
+            card.className = "glass-panel p-5 rounded-2xl border-red-500/30 flex flex-col justify-between shadow-[0_4px_20px_rgba(239,68,68,0.05)]";
+            card.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <div class="flex items-center gap-1.5 mb-2">
+                                <span class="inline-block px-2 py-1 ${badgeColor} text-[9px] font-bold rounded uppercase tracking-wider">AO VIVO</span>
+                                <span id="min-${id}" class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-mono font-bold rounded">${item.minuto}' min</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-slate-100 leading-tight">${item.jogo.home_team.split('(')[0]}<br><span class="text-slate-500 font-normal">vs</span> ${item.jogo.away_team.split('(')[0]}</h3>
+                        </div>
+                        <div class="text-right">
+                            <span id="score-${id}" class="inline-block text-xs font-mono font-black bg-slate-900 px-2 py-1 rounded text-slate-300 border border-slate-800 mb-1">${item.golsHome} - ${item.golsAway}</span>
+                            <p class="text-2xl font-black text-red-400 leading-none">${item.price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800 flex justify-between items-center mb-4">
+                        <div><p class="text-[10px] text-slate-500 uppercase font-bold">Entrada em Live</p><p class="text-xs font-bold text-slate-200">${item.targetName}</p></div>
+                        <div class="text-right"><p class="text-[10px] text-slate-500 uppercase font-bold">Bookie</p><p class="text-xs font-bold text-red-400">${item.casa}</p></div>
+                    </div>
+                </div>
+                <div class="space-y-1.5 mt-auto">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-400"><span>PRESSÃO / VALOR</span><span class="text-red-400">${item.prob}%</span></div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div class="bg-red-500 h-full rounded-full" style="width: ${item.prob}%"></div></div>
+                </div>
+            `;
+            grid.prepend(card);
+        }
+
+        function obterBadgeColor(strat) {
+            if (strat === 'gols') return "bg-cyan-900/50 text-cyan-400";
+            if (strat === 'escanteios') return "bg-amber-900/50 text-amber-400";
+            if (strat === 'viradas') return "bg-purple-900/50 text-purple-400";
+            return "bg-slate-800 text-slate-400";
+        }
+
+        function mostrarAvisoFiltro() {
+            grid.innerHTML = `<p class="col-span-full text-center text-slate-500 text-sm py-20 italic">Varrendo canais... Nenhum evento correspondente encontrado nos filtros atuais.</p>`;
         }
 
         function limparGrid() {
-            grid.innerHTML = '';
-            processedMatches.clear();
-            if (!isRunning) {
-                grid.appendChild(emptyState);
-                emptyState.style.display = 'flex';
-            }
+            preMatches.clear();
+            liveMatches.clear();
+            re-renderGrid();
         }
     </script>
 </body>
