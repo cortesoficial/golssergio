@@ -2,107 +2,83 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALEX — Intelligence Engine</title>
+    <title>ALEX | MODO VIGILANTE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .gradient-card { background: linear-gradient(145deg, #1e272e, #161d24); }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .pulse-green { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
-<body class="bg-[#0b0f12] text-slate-100 font-sans min-h-screen">
+<body class="bg-[#05070a] text-white p-6">
 
-    <div class="max-w-5xl mx-auto p-6">
-        <header class="mb-8 border-b border-slate-800 pb-6">
-            <h1 class="text-4xl font-black text-[#2ecc71] tracking-tighter">ALEX <span class="text-slate-600 font-light">INTELLIGENCE</span></h1>
-            <p class="text-slate-400 text-sm mt-2">Robô de análise de valor: Identificando oportunidades estatísticas em tempo real.</p>
-        </header>
-
-        <section class="gradient-card p-6 rounded-2xl border border-slate-800 shadow-2xl mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="text-[10px] uppercase font-black text-[#2ecc71]">Confiança Mínima</label>
-                    <input type="range" id="filtro-prob" min="40" max="80" value="55" class="w-full mt-2 accent-[#2ecc71]" oninput="document.getElementById('val').innerText = this.value">
-                    <div class="text-right text-xs font-bold mt-1"><span id="val">55</span>% de margem</div>
-                </div>
-                <div class="col-span-2 flex items-end">
-                    <button id="btn-analise" onclick="analisarOportunidades()" class="w-full bg-[#2ecc71] hover:bg-[#27ae60] text-black font-black py-4 rounded-xl shadow-[0_0_20px_rgba(46,204,113,0.3)] transition-all transform active:scale-95">
-                        INICIAR VARREDURA ANALÍTICA
-                    </button>
-                </div>
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-black text-[#2ecc71]">ALEX <span class="text-slate-500">VIGILANTE</span></h1>
+                <p id="status-text" class="text-xs text-slate-400">Status: Aguardando detecção de valor...</p>
             </div>
-        </section>
-
-        <div id="grid-oportunidades" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="col-span-full py-20 text-center text-slate-600 border border-dashed border-slate-800 rounded-xl">
-                <i data-lucide="radar" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
-                <p>Pronto para análise. Defina o critério e inicie a varredura.</p>
-            </div>
+            <div id="timer" class="text-4xl font-mono font-bold text-[#2ecc71]">30</div>
         </div>
+
+        <div id="alerts-container" class="space-y-4">
+            </div>
     </div>
 
     <script>
-        lucide.createIcons();
+        let contador = 30;
 
-        async function analisarOportunidades() {
-            const grid = document.getElementById("grid-oportunidades");
-            const btn = document.getElementById("btn-analise");
-            const confiancaMin = parseInt(document.getElementById("filtro-prob").value);
+        async function monitorarMercado() {
+            const container = document.getElementById('alerts-container');
+            const status = document.getElementById('status-text');
             
-            btn.innerHTML = "PROCESSANDO...";
-            btn.disabled = true;
-            grid.innerHTML = `<p class="col-span-full text-center text-[#2ecc71] animate-pulse">Aguarde: Cruzando dados globais com critério de valor...</p>`;
-
             try {
-                // API com proxy robusto para o GitHub Pages
-                const url = `https://corsproxy.io/?https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey=17ff5de216b7d5283de72a97f0ebb49c&regions=eu&markets=h2h&oddsFormat=decimal`;
-                const res = await fetch(url);
+                const res = await fetch('https://corsproxy.io/?https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey=17ff5de216b7d5283de72a97f0ebb49c&regions=eu&markets=h2h&oddsFormat=decimal');
                 const jogos = await res.json();
-
-                grid.innerHTML = "";
-                let count = 0;
-
+                
+                status.innerText = "Status: Escaneando oportunidades de valor...";
+                
                 jogos.forEach(jogo => {
-                    if (!jogo.bookmakers || jogo.bookmakers.length === 0) return;
-
                     jogo.bookmakers[0].markets[0].outcomes.forEach(o => {
                         const prob = Math.round(100 / o.price);
                         
-                        // LÓGICA DE SELEÇÃO: Valor entre 1.5 e 2.2 e confiança conforme filtro
-                        if (o.price >= 1.50 && o.price <= 2.20 && prob >= confiancaMin) {
-                            count++;
-                            const card = document.createElement("div");
-                            card.className = "gradient-card p-5 rounded-2xl border border-slate-700 hover:border-[#2ecc71] transition-all group";
-                            card.innerHTML = `
-                                <div class="flex justify-between mb-4">
-                                    <span class="text-[9px] font-black uppercase bg-slate-900 text-slate-400 px-2 py-1 rounded">Valor Detectado</span>
-                                    <span class="text-[#2ecc71] font-black text-xl">${o.price}</span>
-                                </div>
-                                <h3 class="font-bold text-sm mb-4 leading-tight">${jogo.home_team.split('(')[0]} <br><span class="text-slate-500">vs</span> ${jogo.away_team.split('(')[0]}</h3>
-                                <div class="space-y-1">
-                                    <div class="flex justify-between text-[10px] font-bold text-slate-400">
-                                        <span>CONFIDÊNCIA</span>
-                                        <span>${prob}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-900 h-1.5 rounded-full">
-                                        <div class="bg-[#2ecc71] h-full rounded-full transition-all duration-1000" style="width:${prob}%"></div>
-                                    </div>
-                                </div>
-                            `;
-                            grid.appendChild(card);
+                        // O "Momento Certo": O robô só alerta se a probabilidade for > 55% e odd entre 1.7 e 2.1
+                        if (o.price >= 1.70 && o.price <= 2.10 && prob >= 55) {
+                            adicionarAlerta(jogo, o, prob);
                         }
                     });
                 });
-
-                if (count === 0) grid.innerHTML = `<p class="col-span-full text-center text-red-500">Nenhum valor encontrado nos parâmetros atuais.</p>`;
-            } catch (e) {
-                grid.innerHTML = `<p class="col-span-full text-center text-red-500">Erro crítico: Verifique sua conexão ou API.</p>`;
-            } finally {
-                btn.innerHTML = "INICIAR VARREDURA ANALÍTICA";
-                btn.disabled = false;
-            }
+            } catch (e) { status.innerText = "Erro ao conectar."; }
         }
+
+        function adicionarAlerta(jogo, o, prob) {
+            const container = document.getElementById('alerts-container');
+            const id = jogo.id + o.name;
+            if (document.getElementById(id)) return; // Evita duplicados
+
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "pulse-green bg-[#161d24] p-6 rounded-2xl border-2 border-[#2ecc71] flex justify-between items-center";
+            div.innerHTML = `
+                <div>
+                    <h2 class="font-bold">${jogo.home_team.split('(')[0]} vs ${jogo.away_team.split('(')[0]}</h2>
+                    <p class="text-[#2ecc71] font-black text-xl">ODD ${o.price} | CONF: ${prob}%</p>
+                </div>
+                <button onclick="alert('Aposta Enviada para o seu Gerenciador!')" class="bg-[#2ecc71] text-black font-black px-6 py-3 rounded-lg hover:bg-white transition-all">
+                    ENTRAR AGORA
+                </button>
+            `;
+            container.prepend(div);
+        }
+
+        // Timer de monitoramento
+        setInterval(() => {
+            contador--;
+            document.getElementById('timer').innerText = contador;
+            if (contador <= 0) {
+                monitorarMercado();
+                contador = 30;
+            }
+        }, 1000);
     </script>
 </body>
 </html>
