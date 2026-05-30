@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQUADRADRY — Monitor de Odds Real-Time</title>
+    <title>ALEX — Monitor de Odds Real-Time</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -15,12 +15,11 @@
 </head>
 <body class="bg-[#0b0f12] text-slate-100 font-sans min-h-screen flex flex-col">
 
-    <!-- --- CABEÇALHO --- -->
     <header class="max-w-6xl w-full mx-auto px-6 pt-8 pb-4">
         <div class="flex items-center gap-3">
             <i data-lucide="shield-alert" class="text-[#2ecc71] w-8 h-8"></i>
             <h1 class="text-2xl md:text-3xl font-bold tracking-wider text-[#2ecc71]">
-                SQUADRADRY <span class="text-slate-400 font-light text-xl">| SPORTS INTELLIGENCE</span>
+                ALEX <span class="text-slate-400 font-light text-xl">| SPORTS INTELLIGENCE</span>
             </h1>
         </div>
         <p class="text-sm text-slate-400 mt-1 pl-1">
@@ -28,13 +27,11 @@
         </p>
     </header>
 
-    <!-- --- PAINEL DE CONTROLES E FILTROS --- -->
     <main class="max-w-6xl w-full mx-auto px-6 flex-1 flex flex-col gap-6">
         <section class="bg-[#1e272e] p-5 rounded-xl border border-slate-800 shadow-lg space-y-4">
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 
-                <!-- Seleção de Estratégia / Mercado -->
                 <div>
                     <label for="select-estrategia" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                         Estratégia / Mercado:
@@ -47,7 +44,6 @@
                     </select>
                 </div>
 
-                <!-- Input Odd Mínima -->
                 <div>
                     <label for="odd-min" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                         Odd Mínima:
@@ -56,7 +52,6 @@
                         class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-[#2ecc71] transition-colors">
                 </div>
 
-                <!-- Input Odd Máxima -->
                 <div>
                     <label for="odd-max" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                         Odd Máxima:
@@ -65,7 +60,6 @@
                         class="w-full bg-[#0f1418] border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-[#2ecc71] transition-colors">
                 </div>
 
-                <!-- Botão Master -->
                 <button id="btn-buscar" onclick="executarBuscaRobot()"
                     class="w-full bg-[#2ecc71] hover:bg-[#27ae60] text-white font-bold h-[46px] rounded-lg shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
                     <i data-lucide="zap" class="w-5 h-5"></i>
@@ -75,11 +69,9 @@
             </div>
         </section>
 
-        <!-- --- ÁREA DE RESULTADOS (CARDS) --- -->
         <section class="flex-1 bg-[#0f1418] border border-slate-800 rounded-xl p-6 min-h-[400px] flex flex-col shadow-inner">
             <div id="container-resultados" class="flex-1 overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-4">
                 
-                <!-- Estado Inicial -->
                 <div id="placeholder-text" class="m-auto text-center max-w-md px-4 py-20">
                     <i data-lucide="activity" class="w-12 h-12 text-slate-600 mx-auto mb-4 animate-pulse"></i>
                     <p class="text-slate-500 italic text-sm">
@@ -91,23 +83,22 @@
         </section>
     </main>
 
-    <!-- --- BARRA DE STATUS INFERIOR --- -->
     <footer class="max-w-6xl w-full mx-auto px-6 py-4 border-t border-slate-900 flex justify-between items-center text-xs text-slate-500">
         <div class="flex items-center gap-2">
             <span id="status-indicator" class="w-2 h-2 rounded-full bg-amber-500"></span>
             <span id="lbl-status">Pronto para buscar oportunidades exclusivas.</span>
         </div>
-        <div>SQUADRADRY Intelligent Engine v2.5</div>
+        <div>ALEX Intelligent Engine v2.5</div>
     </footer>
 
-    <!-- --- LÓGICA DE PROGRAMAÇÃO (JAVASCRIPT) --- -->
     <script>
         lucide.createIcons();
 
         const API_KEY = "17ff5de216b7d5283de72a97f0ebb49c";
         const API_BASE_URL = "https://api.the-odds-api.com/v4/sports/soccer/odds/";
-        // Proxy público para quebrar o bloqueio de segurança de requisições Web (CORS)
-        const PROXY_URL = "https://api.allorigins.win/raw?url=";
+        
+        // Mudança para um engine de proxy mais robusto para evitar o erro "Failed to fetch" no GitHub Pages
+        const PROXY_URL = "https://corsproxy.io/?";
 
         function ajustarFiltrosPorEstrategia() {
             const estrategia = document.getElementById("select-estrategia").value;
@@ -143,15 +134,15 @@
 
             btnBuscar.disabled = true;
             btnBuscar.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></svg> <span>PROCESSANDO MERCADOS...</span>`;
-            lblStatus.innerText = "Ignorando barreiras de segurança e puxando dados...";
+            lblStatus.innerText = "Conectando em canais seguros e limpando dados...";
             statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
             container.innerHTML = "";
 
             try {
                 const mercadoAPI = (estrategia === "over15ht") ? "btts" : "h2h";
-                // URL original montada
                 const urlOriginal = `${API_BASE_URL}?apiKey=${API_KEY}&regions=eu&markets=${mercadoAPI}&oddsFormat=decimal`;
-                // URL encapsulada no Proxy para burlar o bloqueio CORS do navegador
+                
+                // Usando a nova estrutura de bypass do corsproxy.io
                 const urlFinal = `${PROXY_URL}${encodeURIComponent(urlOriginal)}`;
                 
                 const resposta = await fetch(urlFinal);
@@ -265,7 +256,7 @@
                 statusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500";
 
             } catch (erro) {
-                exibirMensagemErro(`Falha crítica de processamento: ${erro.message}`);
+                exibirMensagemErro(`Falha de rede (CORS). Tente novamente em alguns segundos: ${erro.message}`);
             } finally {
                 btnBuscar.disabled = false;
                 btnBuscar.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i> <span>ESCANEAR MERCADO</span>`;
