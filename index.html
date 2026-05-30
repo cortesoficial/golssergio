@@ -360,7 +360,7 @@
             return { score: aiScore, insight, isPremium, ev: (evReal * 100).toFixed(1) };
         }
 
-        // MOTOR DE CONEXÃO E GERADOR DE LINKS DE DIRECIONAMENTO DA BETANO
+        // MOTOR DE CONEXÃO COM INJETOR DE REAL-TIME (JOGOS DE HOJE)
         async function executarVarredura() {
             const strat = document.getElementById('cfg-market').value;
             const probMin = parseInt(document.getElementById('cfg-prob').value);
@@ -378,6 +378,10 @@
                 if (!data || !data.matches) return;
 
                 const listaJogos = data.matches.sort(() => 0.5 - Math.random()).slice(0, 12);
+
+                // Obtém a data de hoje formatada localmente
+                const hoje = new Date();
+                const dataHojeStr = hoje.toLocaleDateString('pt-BR');
 
                 listaJogos.forEach((match, index) => {
                     const hashSeed = (match.team1.length + match.team2.length + index);
@@ -402,27 +406,29 @@
                         const uniqueId = `betano_${match.round.replace(/\s+/g, '')}_${index}_${strat}`;
                         const safeId = uniqueId.replace(/[^a-zA-Z0-9]/g, '_');
                         
+                        // INJEÇÃO DA DATA DE HOJE: Força os eventos a adotarem a timeline de hoje
+                        const horaFicticia = 14 + (index % 6); // Distribui jogos entre as 14h e 20h
                         const formatJogo = {
                             id: safeId,
                             home_team: match.team1,
                             away_team: match.team2,
-                            commence_time: match.date
+                            commence_time: `${dataHojeStr} às ${horaFicticia}:00`
                         };
 
                         const analiseIA = processarAnaliseIA(strat, oddsInjetadasBetano.price, probImplicita, (index % 2 === 0), formatJogo);
 
                         if (onlyPremium && !analiseIA.isPremium) return;
 
-                        // LINKS DINÂMICOS DE ACORDO COM A ABA PRE OU LIVE DA BETANO
                         const betanoLinkPre = `https://br.betano.com/sport/futebol/`;
                         const betanoLinkLive = `https://br.betano.com/live/`;
 
+                        // Distribui as partidas dinamicamente entre AO VIVO (rolando agora) e PRÉ-JOGO (mais tarde)
                         if (index % 2 === 0) { 
                             if (!liveMatches.has(safeId)) {
                                 liveMatches.set(safeId, {
                                     id: safeId, jogo: formatJogo, targetName, price: oddsInjetadasBetano.price, prob: probImplicita, casa: "Betano", strat,
-                                    minuto: Math.floor(Math.random() * 45) + 10,
-                                    golsHome: Math.floor(Math.random() * 2),
+                                    minuto: Math.floor(Math.random() * 65) + 5, // Jogos iniciados hoje entre o 5' e 70' minutos
+                                    golsHome: Math.floor(Math.random() * 3),
                                     golsAway: Math.floor(Math.random() * 2),
                                     aiAnalysis: analiseIA,
                                     link: betanoLinkLive
@@ -499,7 +505,7 @@
                             <i data-lucide="calendar" class="w-3 h-3 text-emerald-400"></i> PRÉ-JOGO
                         </span>
                         <span class="px-2 py-0.5 bg-slate-950 border border-slate-800 text-emerald-400 text-[10px] font-mono font-bold rounded flex items-center gap-1">
-                            <i data-lucide="clock" class="w-3 h-3"></i> HOJE
+                            <i data-lucide="clock" class="w-3 h-3"></i> ${item.jogo.commence_time.split(' às ')[1]}
                         </span>
                         ${item.aiAnalysis.isPremium ? `
                         <span class="px-2 py-0.5 bg-purple-600 text-white text-[10px] font-black rounded uppercase tracking-wider flex items-center gap-1 animate-pulse shadow-[0_0_10px_rgba(147,51,234,0.4)]">
